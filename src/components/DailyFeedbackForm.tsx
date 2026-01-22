@@ -112,11 +112,11 @@ export default function DailyFeedbackForm({
         value: '好' | '普通' | '不好';
         onChange: (v: '好' | '普通' | '不好') => void;
     }) => {
-        const options: Array<'好' | '普通' | '不好'> = ['好', '普通', '不好'];
+        const options: Array<'不好' | '普通' | '好'> = ['不好', '普通', '好'];
         const colors = {
-            '好': 'bg-[#F0F7F0] border-[#8EA68F] text-[#4A6B4E]',
-            '普通': 'bg-[#F0F2F5] border-[#8294A5] text-[#5A6A7A]',
-            '不好': 'bg-[#F9F1F1] border-[#B88A8A] text-[#A64B4E]',
+            '好': 'bg-[#F0F7F0] border-[#8EA68F] text-[#2D4A31] ring-2 ring-[#8EA68F]/20',
+            '普通': 'bg-[#F0F2F5] border-[#8294A5] text-[#2A3B4D] ring-2 ring-[#8294A5]/20',
+            '不好': 'bg-[#F9F1F1] border-[#B88A8A] text-[#5C2B2E] ring-2 ring-[#B88A8A]/20',
         };
 
         return (
@@ -126,10 +126,10 @@ export default function DailyFeedbackForm({
                         key={option}
                         type="button"
                         onClick={() => onChange(option)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 font-black text-sm transition-all chinese-font
+                        className={`flex-1 py-4 px-4 rounded-xl border-2 font-black text-base transition-all chinese-font
               ${value === option
-                                ? colors[option] + ' scale-[1.02]'
-                                : 'bg-white border-stone-100 text-stone-300 hover:border-stone-200'
+                                ? colors[option] + ' scale-[1.02] border-opacity-100 shadow-md'
+                                : 'bg-white border-stone-100 text-[#8E8E8E] hover:border-stone-300'
                             }`}
                     >
                         {option}
@@ -152,7 +152,7 @@ export default function DailyFeedbackForm({
 
         return (
             <div className="space-y-2">
-                <div className="text-[9px] font-black uppercase tracking-[0.15em] text-stone-300 chinese-font">
+                <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#5C5C5C] chinese-font">
                     {label}
                 </div>
                 <div className="flex gap-2">
@@ -161,10 +161,10 @@ export default function DailyFeedbackForm({
                             key={score}
                             type="button"
                             onClick={() => onChange(score)}
-                            className={`flex-1 aspect-square rounded-lg border-2 font-black text-sm transition-all
+                            className={`flex-1 aspect-square rounded-lg border-2 font-black text-base transition-all
                 ${value === score
-                                    ? 'bg-[#F0F2F5] border-[#8294A5] text-[#8294A5] scale-[1.05]'
-                                    : 'bg-white border-stone-100 text-stone-300 hover:border-stone-200'
+                                    ? 'bg-[#E0E7ED] border-[#5A6A7A] text-[#1A2B3D] scale-[1.05]'
+                                    : 'bg-white border-stone-100 text-[#B0B0B0] hover:border-stone-300'
                                 }`}
                         >
                             {score}
@@ -179,7 +179,7 @@ export default function DailyFeedbackForm({
         <div className="bg-stone-50 rounded-2xl p-6 border border-stone-100/50 space-y-6">
             {/* 今日分數 */}
             <div className="space-y-3">
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">
+                <div className="text-[11px] font-black uppercase tracking-[0.2em] text-[#5C5C5C]">
                     今日分數 /// OVERALL SCORE
                 </div>
                 <ScoreSelector
@@ -214,22 +214,22 @@ export default function DailyFeedbackForm({
 
             {/* 情緒選擇 */}
             <div className="space-y-3 pt-2">
-                <div className="text-[9px] font-black uppercase tracking-[0.15em] text-stone-400 mb-2">
+                <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#5C5C5C] mb-2">
                     今日情緒 // Emotion Meter
                 </div>
                 <button
                     type="button"
                     onClick={() => setShowEmotionPicker(true)}
-                    className="w-full py-3 px-4 rounded-xl border-2 border-stone-100 bg-white text-sm text-stone-400 hover:border-[#8294A5] hover:text-[#8294A5] transition-all flex items-center justify-center gap-2 font-medium"
+                    className="w-full py-4 px-4 rounded-xl border-2 border-stone-200 bg-white text-base text-[#4A4A4A] hover:border-[#8294A5] hover:text-[#2A3B4D] transition-all flex items-center justify-center gap-2 font-bold shadow-sm"
                 >
-                    <Sparkles size={14} strokeWidth={2.5} />
+                    <Sparkles size={16} strokeWidth={2.5} className="text-[#8294A5]" />
                     {formData.情緒.length > 0
                         ? `已選擇 ${formData.情緒.length} 個情緒`
                         : '選擇情緒（最多3個）'
                     }
                 </button>
                 {formData.情緒.length > 0 && (
-                    <div className="text-sm text-stone-600 chinese-font text-center py-2">
+                    <div className="text-base text-[#2A3B4D] chinese-font text-center py-2 font-black px-4 bg-white rounded-lg border border-divider">
                         {formData.情緒.join(' · ')}
                     </div>
                 )}
@@ -238,26 +238,26 @@ export default function DailyFeedbackForm({
             {/* 文字回饋 */}
             <div className="space-y-4 pt-2">
                 <div>
-                    <div className="text-[9px] font-black uppercase tracking-[0.15em] text-[#8EA68F] mb-2 bg-[#F0F4F0] w-fit px-2 py-0.5 rounded">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#2D4A31] mb-2 bg-[#E8F0E8] w-fit px-2 py-1 rounded">
                         八字實證 // Bazi Experience
                     </div>
                     <textarea
                         value={formData.八字_體感}
                         onChange={(e) => setFormData({ ...formData, 八字_體感: e.target.value })}
                         placeholder="記錄今日八字能量的體驗與感受..."
-                        className="w-full h-24 px-4 py-3 rounded-xl border-2 border-stone-100 bg-white text-sm text-stone-600 chinese-font leading-relaxed resize-none focus:outline-none focus:border-[#8EA68F] transition-colors placeholder:text-stone-300"
+                        className="w-full h-28 px-4 py-3 rounded-xl border-2 border-stone-200 bg-white text-base text-[#1A1A1A] chinese-font leading-relaxed resize-none focus:outline-none focus:border-[#8EA68F] transition-colors placeholder:text-[#B0B0B0] font-medium"
                     />
                 </div>
 
                 <div>
-                    <div className="text-[9px] font-black uppercase tracking-[0.15em] text-[#8294A5] mb-2 bg-[#F0F2F5] w-fit px-2 py-0.5 rounded">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#2A3B4D] mb-2 bg-[#E0E7ED] w-fit px-2 py-1 rounded">
                         紫微回饋 // Zi Wei Reflection
                     </div>
                     <textarea
                         value={formData.紫微_四化簡述}
                         onChange={(e) => setFormData({ ...formData, 紫微_四化簡述: e.target.value })}
                         placeholder="記錄今日紫微四化的感觸與心得..."
-                        className="w-full h-24 px-4 py-3 rounded-xl border-2 border-stone-100 bg-white text-sm text-stone-600 chinese-font leading-relaxed resize-none focus:outline-none focus:border-[#8294A5] transition-colors placeholder:text-stone-300"
+                        className="w-full h-28 px-4 py-3 rounded-xl border-2 border-stone-200 bg-white text-base text-[#1A1A1A] chinese-font leading-relaxed resize-none focus:outline-none focus:border-[#8294A5] transition-colors placeholder:text-[#B0B0B0] font-medium"
                     />
                 </div>
             </div>

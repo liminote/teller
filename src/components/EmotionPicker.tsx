@@ -83,7 +83,7 @@ export default function EmotionPicker({ selected, onChange, onClose }: EmotionPi
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b border-stone-100 flex items-center justify-between">
