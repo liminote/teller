@@ -114,13 +114,17 @@ export default function Dashboard() {
                     .filter(([_, stats]) => stats.total >= 1)
                     .map(([key, stats]) => ({ key, rate: stats.good / stats.total, total: stats.total }))
                     .sort((a, b) => b.rate - a.rate || b.total - a.total)
-                    .slice(0, 10).map(o => o.key));
+                    .slice(0, 10)
+                    .filter(o => o.rate > 0.5)
+                    .map(o => o.key));
 
                 const worstBaziSet = new Set(Object.entries(ganzhiScoreMap)
                     .filter(([_, stats]) => stats.total >= 1)
                     .map(([key, stats]) => ({ key, rate: stats.bad / stats.total, total: stats.total }))
                     .sort((a, b) => b.rate - a.rate || b.total - a.total)
-                    .slice(0, 10).map(o => o.key));
+                    .slice(0, 10)
+                    .filter(o => o.rate > 0.33)
+                    .map(o => o.key));
 
                 // --- 2. 生成預測矩陣 ---
                 // 保留基本的機率供綜合分數使用 (fallback)
