@@ -62,7 +62,7 @@ export default function Dashboard() {
                     return ((stats.good * 1) + (stats.normal * 0.5) + (stats.bad * 0)) / stats.total;
                 };
 
-                // A. 宮位統計 (Top 3) using Average Score
+                // A. 宮位統計 (Top 3) using Win Rate
                 const palaceScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
                 scoreData.forEach((d: any) => {
                     const place = d.流日命宮地支;
@@ -75,13 +75,13 @@ export default function Dashboard() {
                     }
                 });
                 const bestPalacesSet = new Set(Object.entries(palaceScoreMap)
-                    .map(([key, stats]) => ({ key, score: getAvgScore(stats) }))
-                    .sort((a, b) => b.score - a.score).slice(0, 3).map(o => o.key)); // Highest Score
+                    .map(([key, stats]) => ({ key, rate: stats.good / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 3).map(o => o.key)); // Highest Good Rate
                 const worstPalacesSet = new Set(Object.entries(palaceScoreMap)
-                    .map(([key, stats]) => ({ key, score: getAvgScore(stats) }))
-                    .sort((a, b) => a.score - b.score).slice(0, 3).map(o => o.key)); // Lowest Score
+                    .map(([key, stats]) => ({ key, rate: stats.bad / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 3).map(o => o.key)); // Highest Bad Rate
 
-                // B. 天干統計 (Top 3) using Average Score
+                // B. 天干統計 (Top 3) using Win Rate
                 const stemScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
                 scoreData.forEach((d: any) => {
                     const stem = d.天干;
@@ -94,13 +94,13 @@ export default function Dashboard() {
                     }
                 });
                 const bestStemsSet = new Set(Object.entries(stemScoreMap)
-                    .map(([key, stats]) => ({ key, score: getAvgScore(stats) }))
-                    .sort((a, b) => b.score - a.score).slice(0, 3).map(o => o.key));
+                    .map(([key, stats]) => ({ key, rate: stats.good / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 3).map(o => o.key));
                 const worstStemsSet = new Set(Object.entries(stemScoreMap)
-                    .map(([key, stats]) => ({ key, score: getAvgScore(stats) }))
-                    .sort((a, b) => a.score - b.score).slice(0, 3).map(o => o.key));
+                    .map(([key, stats]) => ({ key, rate: stats.bad / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 3).map(o => o.key));
 
-                // C. 八字統計 (Top 10) using Average Score
+                // C. 八字統計 (Top 10) using Win Rate
                 const ganzhiScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
                 scoreData.forEach((d: any) => {
                     const gz = `${d.天干}${d.地支}`;
@@ -112,14 +112,14 @@ export default function Dashboard() {
                 });
                 const bestBaziSet = new Set(Object.entries(ganzhiScoreMap)
                     .filter(([_, stats]) => stats.total >= 1)
-                    .map(([key, stats]) => ({ key, score: getAvgScore(stats), total: stats.total }))
-                    .sort((a, b) => b.score - a.score || b.total - a.total)
+                    .map(([key, stats]) => ({ key, rate: stats.good / stats.total, total: stats.total }))
+                    .sort((a, b) => b.rate - a.rate || b.total - a.total)
                     .slice(0, 10).map(o => o.key));
 
                 const worstBaziSet = new Set(Object.entries(ganzhiScoreMap)
                     .filter(([_, stats]) => stats.total >= 1)
-                    .map(([key, stats]) => ({ key, score: getAvgScore(stats), total: stats.total }))
-                    .sort((a, b) => a.score - b.score || b.total - a.total)
+                    .map(([key, stats]) => ({ key, rate: stats.bad / stats.total, total: stats.total }))
+                    .sort((a, b) => b.rate - a.rate || b.total - a.total)
                     .slice(0, 10).map(o => o.key));
 
                 // --- 2. 生成預測矩陣 ---
@@ -463,21 +463,14 @@ export default function Dashboard() {
                                 ganzhiScoreMap[ganzhi].total++;
                             });
 
-                            // 3. 計算宮位排名 (使用加權平均分數，與 Matrix 一致)
-                            const getAvgScore = (stats: { good: number, normal: number, bad: number, total: number }) => {
-                                if (stats.total === 0) return 0.5;
-                                return ((stats.good * 1) + (stats.normal * 0.5) + (stats.bad * 0)) / stats.total;
-                            };
-
-                            // 最好的 3 格：按「分數」由高到低
+                            // 3. 計算宮位排名 (使用好運率/壞運率)
                             const bestPalaces = Object.entries(palaceScoreMap)
-                                .map(([key, stats]) => ({ key, score: getAvgScore(stats), rate: stats.good / stats.total }))
-                                .sort((a, b) => b.score - a.score);
+                                .map(([key, stats]) => ({ key, rate: stats.good / stats.total }))
+                                .sort((a, b) => b.rate - a.rate);
 
-                            // 最差的 3 格：按「分數」由低到高
                             const worstPalaces = Object.entries(palaceScoreMap)
-                                .map(([key, stats]) => ({ key, score: getAvgScore(stats), rate: stats.bad / stats.total }))
-                                .sort((a, b) => a.score - b.score);
+                                .map(([key, stats]) => ({ key, rate: stats.bad / stats.total }))
+                                .sort((a, b) => b.rate - a.rate);
 
                             const best4 = new Set(bestPalaces.slice(0, 3).map(o => o.key));
                             const worst4 = new Set(worstPalaces.slice(0, 3).map(o => o.key));
@@ -610,30 +603,24 @@ export default function Dashboard() {
                                         const validGanzhi = Object.entries(ganzhiScoreMap).filter(([_, stats]) => stats.total >= 1); // Allow even 1 record until more data
                                         if (validGanzhi.length === 0) return null;
 
-                                        // Helper: 計算加權平均分數 (與上方邏輯一致)
-                                        const getAvgScore = (stats: { good: number, normal: number, bad: number, total: number }) => {
-                                            if (stats.total === 0) return 0.5;
-                                            return ((stats.good * 1) + (stats.normal * 0.5) + (stats.bad * 0)) / stats.total;
-                                        };
-
-                                        // Score-based sorting
+                                        // Rate-based sorting (Win Rate)
                                         const bestLuck = [...validGanzhi].sort((a, b) => {
-                                            const scoreA = getAvgScore(a[1]);
-                                            const scoreB = getAvgScore(b[1]);
-                                            return scoreB - scoreA || b[1].total - a[1].total;
+                                            const rateA = a[1].good / a[1].total;
+                                            const rateB = b[1].good / b[1].total;
+                                            return rateB - rateA || b[1].total - a[1].total;
                                         }).slice(0, 10);
 
                                         const worstLuck = [...validGanzhi].sort((a, b) => {
-                                            const scoreA = getAvgScore(a[1]);
-                                            const scoreB = getAvgScore(b[1]);
-                                            return scoreA - scoreB || b[1].total - a[1].total;
+                                            const rateA = a[1].bad / a[1].total;
+                                            const rateB = b[1].bad / b[1].total;
+                                            return rateB - rateA || b[1].total - a[1].total;
                                         }).slice(0, 10);
 
                                         return (
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                                 <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
                                                     <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2 uppercase tracking-tighter">🟢 BEST 10 八字組合</h2>
-                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「綜合能量分數」排名</p>
+                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「好運率」排名</p>
                                                     <div className="space-y-4">
                                                         {bestLuck.map(([ganzhi, stats], index) => {
                                                             const goodPct = ((stats.good / stats.total) * 100).toFixed(0);
@@ -658,7 +645,7 @@ export default function Dashboard() {
 
                                                 <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
                                                     <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2 uppercase tracking-tighter">🔴 WORST 10 八字組合</h2>
-                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「綜合能量分數」排名 (低分)</p>
+                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「不好率」排名</p>
                                                     <div className="space-y-4">
                                                         {worstLuck.map(([ganzhi, stats], index) => {
                                                             const badPct = ((stats.bad / stats.total) * 100).toFixed(0);
@@ -725,10 +712,10 @@ export default function Dashboard() {
                                                     normalRate: (stats.normal / stats.total) * 100
                                                 };
                                             })
-                                            .sort((a, b) => b.score - a.score); // Sort list by score
+                                            .sort((a, b) => b.goodRate - a.goodRate);
 
-                                        const bestStem = [...stemStats].sort((a, b) => b.score - a.score).slice(0, 3);
-                                        const worstStem = [...stemStats].sort((a, b) => a.score - b.score).slice(0, 3);
+                                        const bestStem = [...stemStats].sort((a, b) => b.goodRate - a.goodRate).slice(0, 3);
+                                        const worstStem = [...stemStats].sort((a, b) => b.badRate - a.badRate).slice(0, 3);
 
                                         return (
                                             <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm mt-10">
