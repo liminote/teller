@@ -10,7 +10,7 @@ export default function Home() {
   const [statusMapping, setStatusMapping] = useState<Record<string, any>>({});
   const [dailyRecords, setDailyRecords] = useState<Record<string, any>>({});
   const [historyData, setHistoryData] = useState<any[]>([]);
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [activeFeedbackDate, setActiveFeedbackDate] = useState<string | null>(null);
   const [feedbackToast, setFeedbackToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -105,7 +105,7 @@ export default function Home() {
       });
       if (!response.ok) throw new Error('儲存失敗');
       setFeedbackToast({ type: 'success', message: '記錄已儲存！' });
-      setShowFeedbackForm(false);
+      setActiveFeedbackDate(null);
     } catch (error) {
       console.error('儲存紀錄失敗:', error);
       setFeedbackToast({ type: 'error', message: '儲存失敗，請稍後再試' });
@@ -235,8 +235,33 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="p-8 pt-4 space-y-8">
+                <div className="p-8 pt-4 space-y-6">
                   <div className="space-y-4">
+                    {/* 紀錄按鈕與表單 (移動到內容上方) */}
+                    {(data.isToday || data.isPast) && (
+                      <div className="space-y-4">
+                        <button
+                          onClick={() => setActiveFeedbackDate(activeFeedbackDate === data.日期 ? null : data.日期)}
+                          className={`w-full py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 font-black text-sm ${activeFeedbackDate === data.日期 ? 'border-[#8294A5] bg-stone-50 text-[#8294A5]' : 'border-stone-100 bg-white text-stone-400 hover:border-[#8294A5] hover:text-[#8294A5]'}`}
+                        >
+                          {activeFeedbackDate === data.日期 ? <><ChevronUp size={16} strokeWidth={3} />收起表單</> : <><PenLine size={16} strokeWidth={3} />{data.isToday ? '記錄今日' : '補登紀錄'}</>}
+                        </button>
+
+                        {activeFeedbackDate === data.日期 && (
+                          <div className="pb-2">
+                            <DailyFeedbackForm
+                              date={data.日期}
+                              heavenlyStem={data.天干}
+                              dailyPalace={data.流日命宮地支}
+                              onSave={handleSaveFeedback}
+                              onCancel={() => setActiveFeedbackDate(null)}
+                              initialData={record}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="bg-stone-50 rounded-2xl p-6 border border-stone-100/50 space-y-5">
                       {status ? (
                         <>
@@ -329,26 +354,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {data.isToday && (
-                    <div className="pb-4">
-                      <button onClick={() => setShowFeedbackForm(!showFeedbackForm)} className="w-full py-3 px-4 rounded-xl border-2 border-stone-200 bg-white hover:bg-stone-50 hover:border-[#8294A5] transition-all flex items-center justify-center gap-2 text-stone-400 hover:text-[#8294A5] font-black text-sm">
-                        {showFeedbackForm ? <><ChevronUp size={16} strokeWidth={3} />收起表單</> : <><PenLine size={16} strokeWidth={3} />記錄今日</>}
-                      </button>
-                    </div>
-                  )}
 
-                  {data.isToday && showFeedbackForm && (
-                    <div className="pb-6">
-                      <DailyFeedbackForm
-                        date={data.日期}
-                        heavenlyStem={data.天干}
-                        dailyPalace={data.流日命宮地支}
-                        onSave={handleSaveFeedback}
-                        onCancel={() => setShowFeedbackForm(false)}
-                        initialData={record}
-                      />
-                    </div>
-                  )}
                 </div>
 
                 <div className="p-8 pb-10 mt-auto">
