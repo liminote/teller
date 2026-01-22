@@ -40,6 +40,12 @@ export const EMOTIONS: Emotion[] = [
     { chinese: '在意的', english: 'Concerned', quadrant: 'red', energy: 'high', pleasantness: 'low' },
     { chinese: '忐忑不安的', english: 'Uneasy', quadrant: 'red', energy: 'high', pleasantness: 'low' },
     { chinese: '不爽快的', english: 'Peeved', quadrant: 'red', energy: 'high', pleasantness: 'low' },
+    { chinese: '有效率的（高壓）', english: 'Efficient (High Pressure)', quadrant: 'red', energy: 'high', pleasantness: 'low' },
+    { chinese: '緊繃的', english: 'Taut', quadrant: 'red', energy: 'high', pleasantness: 'low' },
+    { chinese: '防備的', english: 'Defensive', quadrant: 'red', energy: 'high', pleasantness: 'low' },
+    { chinese: '被逼迫的', english: 'Coerced', quadrant: 'red', energy: 'high', pleasantness: 'low' },
+    { chinese: '戰鬥狀態的', english: 'In Battle Mode', quadrant: 'red', energy: 'high', pleasantness: 'low' },
+    { chinese: '急躁的', english: 'Impatient', quadrant: 'red', energy: 'high', pleasantness: 'low' },
 
     // 🟡 黃色區（高能量 + 高愉悅）
     { chinese: '驚喜的', english: 'Surprised', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
@@ -67,6 +73,12 @@ export const EMOTIONS: Emotion[] = [
     { chinese: '有希望的', english: 'Hopeful', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
     { chinese: '好玩的', english: 'Playful', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
     { chinese: '喜悅的', english: 'Blissful', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
+    { chinese: '有效率的（順暢）', english: 'Efficient (Smooth)', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
+    { chinese: '通透的', english: 'Lucid', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
+    { chinese: '勢如破竹的', english: 'Irresistible', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
+    { chinese: '大膽的', english: 'Bold', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
+    { chinese: '在狀態內的', english: 'In the Zone', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
+    { chinese: '連結的', english: 'Connected', quadrant: 'yellow', energy: 'high', pleasantness: 'high' },
 
     // 🔵 藍色區（低能量 + 低愉悅）
     { chinese: '厭惡的', english: 'Disgusted', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
@@ -94,6 +106,12 @@ export const EMOTIONS: Emotion[] = [
     { chinese: '孤寂的', english: 'Desolate', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
     { chinese: '過度不堪的', english: 'Spent', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
     { chinese: '被榨乾的', english: 'Drained', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '抽離的', english: 'Detached', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '腦霧的', english: 'Brain Fog', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '停滯的', english: 'Stagnant', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '麻木的', english: 'Numb', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '燃燒殆盡的', english: 'Burned Out', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '卡關的', english: 'Stuck', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
 
     // 🟢 綠色區（低能量 + 高愉悅）
     { chinese: '自在的', english: 'At Ease', quadrant: 'green', energy: 'low', pleasantness: 'high' },
@@ -121,6 +139,12 @@ export const EMOTIONS: Emotion[] = [
     { chinese: '安寧的', english: 'Tranquil', quadrant: 'green', energy: 'low', pleasantness: 'high' },
     { chinese: '愜意的', english: 'Cozy', quadrant: 'green', energy: 'low', pleasantness: 'high' },
     { chinese: '悠然的', english: 'Serene', quadrant: 'green', energy: 'low', pleasantness: 'high' },
+    { chinese: '踏實的', english: 'Grounded', quadrant: 'green', energy: 'low', pleasantness: 'high' },
+    { chinese: '清明的', english: 'Clear-minded', quadrant: 'green', energy: 'low', pleasantness: 'high' },
+    { chinese: '有餘裕的', english: 'Ample Space', quadrant: 'green', energy: 'low', pleasantness: 'high' },
+    { chinese: '沈澱的', english: 'Settled', quadrant: 'green', energy: 'low', pleasantness: 'high' },
+    { chinese: '修復的', english: 'Restorative', quadrant: 'green', energy: 'low', pleasantness: 'high' },
+    { chinese: '安定的', english: 'Stable', quadrant: 'green', energy: 'low', pleasantness: 'high' },
 ];
 
 // 根據象限獲取顏色
