@@ -229,17 +229,17 @@ export default function Dashboard() {
 
     return (
         <main className="min-h-screen bg-[#E5E2DB] text-[#4A4A4A] pb-32">
-            <div className="container max-w-7xl mx-auto px-4 md:px-6 py-12">
+            <div className="container max-w-[1800px] mx-auto px-6 md:px-10 py-12">
                 <div className="grid grid-cols-1 gap-10">
 
                     {/* 未來 14 天能量預測矩陣 */}
-                    <section className="bg-white rounded-[32px] p-6 md:p-10 border border-slate-200 shadow-sm overflow-x-auto">
+                    <section className="bg-white rounded-[32px] p-6 md:p-10 border border-slate-200 shadow-sm">
                         <div className="mb-8">
                             <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-1">未來 14 天能量預測</h2>
                             <p className="text-xs text-stone-400">基於您過往 {data.length} 天的歷史數據所推算的能量趨勢</p>
                         </div>
 
-                        <div className="min-w-[1600px]">
+                        <div className="w-full">
                             <div className="grid grid-cols-[120px_repeat(14,1fr)] gap-y-6">
                                 {/* Header: Dates */}
                                 <div className="font-bold text-sm text-stone-400 flex items-end pb-2">日期</div>
