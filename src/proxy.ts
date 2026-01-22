@@ -4,10 +4,10 @@ import type { NextRequest } from 'next/server';
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // 排除登入頁面、API 路由（auth 相關）以及靜態檔案
+    // 排除登入頁面、所有 API 路由以及靜態檔案
     if (
         pathname === '/login' ||
-        pathname.startsWith('/api/auth') ||
+        pathname.startsWith('/api') ||  // 讓所有 API 路由都不需要認證
         pathname.startsWith('/_next') ||
         pathname.includes('.') || // 圖片、圖標等
         pathname === '/favicon.ico'
