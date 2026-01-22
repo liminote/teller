@@ -1,42 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+  --background: #E5E2DB;
+  --foreground: #4A4A4A;
+  --border: rgba(130, 148, 165, 0.1);
+  --card-bg: #FFFFFF;
 }
 
 body {
+  background-color: var(--background);
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+.chinese-font {
+  font-family: 'Noto Serif TC', serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.card-clean {
+  @apply border border-[var(--border)] bg-[var(--card-bg)] rounded-2xl p-6 transition-all;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+.text-subtle {
+  @apply text-slate-500;
+}
+
+.badge-outline {
+  @apply px-3 py-1 border border-[var(--border)] rounded-full text-xs font-medium text-slate-400;
+}
+
+/* Simplified UI for Desktop/Mobile */
+.row-layout {
+  @apply flex items-center justify-between border-b border-[var(--border)] py-6 last:border-0;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }

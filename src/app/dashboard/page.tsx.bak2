@@ -1,0 +1,463 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar, Cell
+} from 'recharts';
+import { Loader2, TrendingUp, Filter, AlertCircle, Info } from 'lucide-react';
+
+export default function Dashboard() {
+    const [data, setData] = useState<any[]>([]);
+    const [dailyData, setDailyData] = useState<any[]>([]);
+    const [mergedData, setMergedData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                // 獲取每日記錄
+                const recordsRes = await fetch('/api/records');
+                const recordsJson = await recordsRes.json();
+                if (recordsJson.error) throw new Error(recordsJson.error);
+
+                // 獲取每日基本資料
+                const dailyRes = await fetch('/api/daily-data');
+                const dailyJson = await dailyRes.json();
+                if (dailyJson.error) throw new Error(dailyJson.error);
+
+                setData(Array.isArray(recordsJson) ? recordsJson : recordsJson.data || []);
+                setDailyData(Array.isArray(dailyJson) ? dailyJson : dailyJson.data || []);
+
+                // 合併資料：以日期為 key
+                const recordsMap = new Map();
+                (Array.isArray(recordsJson) ? recordsJson : recordsJson.data || []).forEach((record: any) => {
+                    if (record.日期) {
+                        recordsMap.set(record.日期, record);
+                    }
+                });
+
+                const merged = (Array.isArray(dailyJson) ? dailyJson : dailyJson.data || []).map((daily: any) => {
+                    const record = recordsMap.get(daily.日期);
+                    return {
+                        ...daily,
+                        ...record,
+                        hasRecord: !!record,
+                        hasEmotion: record && record.情緒 && Array.isArray(record.情緒) && record.情緒.length > 0
+                    };
+                });
+
+                setMergedData(merged);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-[#E5E2DB] space-y-4">
+                <Loader2 className="w-10 h-10 text-[#8294A5] animate-spin" />
+                <p className="text-[#8294A5] font-bold tracking-widest uppercase text-xs">Syncing Data...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-[#E5E2DB] text-center px-4">
+                <AlertCircle className="w-16 h-16 text-[#B25050] mb-4" />
+                <h2 className="text-2xl font-black mb-2 text-[#4A4A4A]">Sync Failed</h2>
+                <p className="text-stone-400 max-w-md">{error}</p>
+            </div>
+        );
+    }
+
+    if (data.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-[#E5E2DB] text-center px-4">
+                <Info className="w-16 h-16 text-[#8294A5] mb-4" />
+                <h2 className="text-2xl font-black mb-2 text-[#4A4A4A]">No Data Yet</h2>
+                <p className="text-stone-400 max-w-md mb-8">
+                    Start by recording your daily scores in the Logs or Google Sheets to see your energy analysis here.
+                </p>
+            </div>
+        );
+    }
+
+    // 格式化分數走勢圖數據 - 使用三個層級
+    const trendData = [...data]
+        .filter(r => r.今日分數)
+        .sort((a, b) => new Date(a.日期).getTime() - new Date(b.日期).getTime())
+        .slice(-14)
+        .map(r => ({
+            date: r.日期.split('-').slice(1).join('/'),
+            score: r.今日分數 === '好' ? 2 : r.今日分數 === '普通' ? 1 : 0,
+            label: r.今日分數,
+            note: r.備註 || ''
+        }));
+
+    return (
+        <main className="min-h-screen bg-[#E5E2DB] text-[#4A4A4A] pb-32">
+            <div className="container max-w-5xl mx-auto px-6 py-16">
+                <header className="mb-16">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/50 rounded-full border border-white/50 text-[10px] font-black tracking-[0.2em] uppercase text-[#8294A5] mb-6">
+                        <TrendingUp size={12} strokeWidth={3} />
+                        Analytics Center
+                    </div>
+                    <h1 className="text-5xl font-black tracking-tighter mb-4 text-[#4A4A4A]">Life Energy Analytics</h1>
+                    <p className="text-stone-400 font-medium max-w-2xl leading-relaxed">
+                        Visualizing the patterns between your daily experiences and planetary alignments.
+                    </p>
+                </header>
+
+                <div className="grid grid-cols-1 gap-10">
+                    {/* 分數走勢圖 */}
+                    <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-[0_20px_60px_-15px_rgba(130,148,165,0.06)]">
+                        <div className="flex justify-between items-center mb-10">
+                            <div>
+                                <h2 className="text-xl font-black tracking-tight text-[#4A4A4A]">Fortune Trend</h2>
+                                <p className="text-xs text-stone-300 font-bold mt-1 uppercase tracking-wider">Last 14 Records</p>
+                            </div>
+                        </div>
+                        <div className="h-[400px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={trendData} margin={{ top: 5, right: 30, left: -20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="4 4" stroke="#F1F1F1" vertical={false} />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="#D1D5DB"
+                                        fontSize={10}
+                                        fontWeight={800}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tick={{ dy: 15 }}
+                                    />
+                                    <YAxis
+                                        stroke="#D1D5DB"
+                                        fontSize={10}
+                                        fontWeight={800}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        domain={[0, 2]}
+                                        ticks={[0, 1, 2]}
+                                        tickFormatter={(value) => value === 2 ? '好' : value === 1 ? '普通' : '不好'}
+                                    />
+                                    <Tooltip
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                const data = payload[0].payload;
+                                                return (
+                                                    <div style={{
+                                                        backgroundColor: '#fff',
+                                                        border: 'none',
+                                                        borderRadius: '16px',
+                                                        boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                                                        padding: '12px 16px'
+                                                    }}>
+                                                        <div style={{ color: '#4A4A4A', fontWeight: 900, fontSize: '12px', marginBottom: '4px' }}>
+                                                            {data.date}
+                                                        </div>
+                                                        <div style={{ color: '#8294A5', fontWeight: 700, fontSize: '14px' }}>
+                                                            {data.label}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="score"
+                                        stroke="#8294A5"
+                                        strokeWidth={4}
+                                        dot={{ fill: '#8294A5', strokeWidth: 0, r: 4 }}
+                                        activeDot={{ r: 6, stroke: '#fff', strokeWidth: 3 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </section>
+
+                    {/* 運勢分布統計 */}
+                    <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
+                        <div className="mb-8">
+                            <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-1">運勢分布</h2>
+                            <p className="text-xs text-stone-400">總記錄數：{data.length} 天</p>
+                        </div>
+
+                        {(() => {
+                            const goodDays = data.filter(r => r.今日分數 === '好').length;
+                            const normalDays = data.filter(r => r.今日分數 === '普通').length;
+                            const badDays = data.filter(r => r.今日分數 === '不好').length;
+                            const total = goodDays + normalDays + badDays;
+
+                            if (total === 0) {
+                                return (
+                                    <div className="text-center text-stone-400 py-8">
+                                        尚無運勢記錄
+                                    </div>
+                                );
+                            }
+
+                            const goodPct = ((goodDays / total) * 100).toFixed(1);
+                            const normalPct = ((normalDays / total) * 100).toFixed(1);
+                            const badPct = ((badDays / total) * 100).toFixed(1);
+
+                            return (
+                                <>
+                                    {/* 橫向堆疊條形圖 */}
+                                    <div className="mb-6">
+                                        <div className="h-16 w-full rounded-2xl overflow-hidden flex shadow-inner">
+                                            {badDays > 0 && (
+                                                <div
+                                                    className="bg-[#B88A8A] flex items-center justify-center transition-all hover:opacity-90"
+                                                    style={{ width: `${badPct}%` }}
+                                                >
+                                                    {parseFloat(badPct) > 10 && (
+                                                        <span className="text-white font-black text-sm">{badPct}%</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {normalDays > 0 && (
+                                                <div
+                                                    className="bg-[#D4C5A9] flex items-center justify-center transition-all hover:opacity-90"
+                                                    style={{ width: `${normalPct}%` }}
+                                                >
+                                                    {parseFloat(normalPct) > 10 && (
+                                                        <span className="text-white font-black text-sm">{normalPct}%</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {goodDays > 0 && (
+                                                <div
+                                                    className="bg-[#8EA68F] flex items-center justify-center transition-all hover:opacity-90"
+                                                    style={{ width: `${goodPct}%` }}
+                                                >
+                                                    {parseFloat(goodPct) > 10 && (
+                                                        <span className="text-white font-black text-sm">{goodPct}%</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* 詳細統計 */}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="text-center p-4 rounded-xl bg-[#B88A8A]/10 border border-[#B88A8A]/20">
+                                            <div className="text-[10px] text-stone-400 font-black uppercase tracking-wider mb-2">不好</div>
+                                            <div className="text-3xl font-black text-[#B88A8A] mb-1">{badDays}</div>
+                                            <div className="text-xs text-stone-500 font-medium">{badPct}%</div>
+                                        </div>
+                                        <div className="text-center p-4 rounded-xl bg-[#D4C5A9]/10 border border-[#D4C5A9]/20">
+                                            <div className="text-[10px] text-stone-400 font-black uppercase tracking-wider mb-2">普通</div>
+                                            <div className="text-3xl font-black text-[#A89874] mb-1">{normalDays}</div>
+                                            <div className="text-xs text-stone-500 font-medium">{normalPct}%</div>
+                                        </div>
+                                        <div className="text-center p-4 rounded-xl bg-[#8EA68F]/10 border border-[#8EA68F]/20">
+                                            <div className="text-[10px] text-stone-400 font-black uppercase tracking-wider mb-2">好</div>
+                                            <div className="text-3xl font-black text-[#8EA68F] mb-1">{goodDays}</div>
+                                            <div className="text-xs text-stone-500 font-medium">{goodPct}%</div>
+                                        </div>
+                                    </div>
+                                </>
+                            );
+                        })()}
+                    </section>
+
+                    {/* 命理特徵 × 運勢分析 */}
+                    {(() => {
+                        const scoreData = mergedData.filter(d => d.hasRecord && d.今日分數);
+
+                        if (scoreData.length === 0) {
+                            return (
+                                <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
+                                    <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-4">命理特徵分析</h2>
+                                    <p className="text-stone-400 text-center py-8">
+                                        開始記錄運勢後，這裡會顯示命理特徵與運勢的關聯分析。
+                                    </p>
+                                </section>
+                            );
+                        }
+
+                        // 按流日命宮分組分析今日分數
+                        const palaceScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
+
+                        scoreData.forEach(d => {
+                            const palace = d.流日命宮地支;
+                            if (!palace) return;
+
+                            if (!palaceScoreMap[palace]) {
+                                palaceScoreMap[palace] = { good: 0, normal: 0, bad: 0, total: 0 };
+                            }
+
+                            if (d.今日分數 === '好') palaceScoreMap[palace].good++;
+                            else if (d.今日分數 === '普通') palaceScoreMap[palace].normal++;
+                            else if (d.今日分數 === '不好') palaceScoreMap[palace].bad++;
+
+                            palaceScoreMap[palace].total++;
+                        });
+
+                        // 按天干地支分組分析今日分數
+                        const ganzhiScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
+
+                        scoreData.forEach(d => {
+                            const ganzhi = `${d.天干}${d.地支}`;
+                            if (!ganzhiScoreMap[ganzhi]) {
+                                ganzhiScoreMap[ganzhi] = { good: 0, normal: 0, bad: 0, total: 0 };
+                            }
+
+                            if (d.今日分數 === '好') ganzhiScoreMap[ganzhi].good++;
+                            else if (d.今日分數 === '普通') ganzhiScoreMap[ganzhi].normal++;
+                            else if (d.今日分數 === '不好') ganzhiScoreMap[ganzhi].bad++;
+
+                            ganzhiScoreMap[ganzhi].total++;
+                        });
+
+                        // 轉換為陣列並排序
+                        const palaceStats = Object.entries(palaceScoreMap)
+                            .sort((a, b) => b[1].total - a[1].total);
+
+
+                        return (
+                            <>
+                                {/* 流日命宮 × 今日分數 */}
+                                <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
+                                    <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2">流日命宮 × 運勢分布</h2>
+                                    <p className="text-xs text-stone-400 mb-8">分析不同流日命宮的運勢好壞分布</p>
+
+                                    <div className="space-y-4">
+                                        {palaceStats.map(([palace, stats]) => {
+                                            const goodPct = ((stats.good / stats.total) * 100).toFixed(0);
+                                            const normalPct = ((stats.normal / stats.total) * 100).toFixed(0);
+                                            const badPct = ((stats.bad / stats.total) * 100).toFixed(0);
+
+                                            return (
+                                                <div key={palace} className="p-4 rounded-xl bg-stone-50 border border-stone-100">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-2xl font-black chinese-font text-[#4A4A4A]">{palace}宮</span>
+                                                            <span className="text-xs text-stone-400">({stats.total} 天)</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* 運勢分布條形圖 */}
+                                                    <div className="mb-3">
+                                                        <div className="h-8 w-full rounded-lg overflow-hidden flex">
+                                                            {stats.bad > 0 && (
+                                                                <div
+                                                                    className="bg-[#B88A8A] flex items-center justify-center"
+                                                                    style={{ width: `${badPct}%` }}
+                                                                    title={`不好: ${badPct}%`}
+                                                                >
+                                                                    {parseFloat(badPct) > 15 && (
+                                                                        <span className="text-white font-bold text-xs">{badPct}%</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {stats.normal > 0 && (
+                                                                <div
+                                                                    className="bg-[#D4C5A9] flex items-center justify-center"
+                                                                    style={{ width: `${normalPct}%` }}
+                                                                    title={`普通: ${normalPct}%`}
+                                                                >
+                                                                    {parseFloat(normalPct) > 15 && (
+                                                                        <span className="text-white font-bold text-xs">{normalPct}%</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {stats.good > 0 && (
+                                                                <div
+                                                                    className="bg-[#8EA68F] flex items-center justify-center"
+                                                                    style={{ width: `${goodPct}%` }}
+                                                                    title={`好: ${goodPct}%`}
+                                                                >
+                                                                    {parseFloat(goodPct) > 15 && (
+                                                                        <span className="text-white font-bold text-xs">{goodPct}%</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* 詳細數字 */}
+                                                    <div className="grid grid-cols-3 gap-2 text-xs">
+                                                        <div className="text-center">
+                                                            <span className="text-[#B88A8A] font-bold">{stats.bad}</span>
+                                                            <span className="text-stone-400 ml-1">不好</span>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <span className="text-[#A89874] font-bold">{stats.normal}</span>
+                                                            <span className="text-stone-400 ml-1">普通</span>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <span className="text-[#8EA68F] font-bold">{stats.good}</span>
+                                                            <span className="text-stone-400 ml-1">好</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+
+                                {/* 天干地支 × 今日分數 */}
+                                {topGanzhi.length > 0 && (
+                                    <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
+                                        <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2">天干地支 × 運勢分布</h2>
+                                        <p className="text-xs text-stone-400 mb-8">Top 10 記錄最多的干支組合</p>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {topGanzhi.map(([ganzhi, stats]) => {
+                                                const goodPct = ((stats.good / stats.total) * 100).toFixed(0);
+                                                const normalPct = ((stats.normal / stats.total) * 100).toFixed(0);
+                                                const badPct = ((stats.bad / stats.total) * 100).toFixed(0);
+
+                                                // 找出主要傾向
+                                                const dominant = stats.good >= stats.normal && stats.good >= stats.bad ? '好'
+                                                    : stats.bad >= stats.normal ? '不好' : '普通';
+                                                const dominantColor = dominant === '好' ? 'text-[#8EA68F]'
+                                                    : dominant === '不好' ? 'text-[#B88A8A]' : 'text-[#A89874]';
+
+                                                return (
+                                                    <div key={ganzhi} className="p-4 rounded-xl bg-gradient-to-br from-stone-50 to-stone-100 border border-stone-200">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-2xl font-black chinese-font text-[#4A4A4A]">{ganzhi}</span>
+                                                            <span className="text-xs text-stone-400">({stats.total} 天)</span>
+                                                        </div>
+
+                                                        {/* 橫向條形圖 */}
+                                                        <div className="h-6 w-full rounded-lg overflow-hidden flex mb-2">
+                                                            {stats.bad > 0 && (
+                                                                <div className="bg-[#B88A8A]" style={{ width: `${badPct}%` }} title={`不好: ${badPct}%`}></div>
+                                                            )}
+                                                            {stats.normal > 0 && (
+                                                                <div className="bg-[#D4C5A9]" style={{ width: `${normalPct}%` }} title={`普通: ${normalPct}%`}></div>
+                                                            )}
+                                                            {stats.good > 0 && (
+                                                                <div className="bg-[#8EA68F]" style={{ width: `${goodPct}%` }} title={`好: ${goodPct}%`}></div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className={`text-sm font-bold ${dominantColor}`}>
+                                                            主要傾向：{dominant}（{dominant === '好' ? goodPct : dominant === '不好' ? badPct : normalPct}%）
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </section>
+                                )}
+                            </>
+                        );
+                    })()}
+                </div>
+            </div>
+        </main>
+    );
+}
