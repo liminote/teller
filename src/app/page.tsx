@@ -237,31 +237,6 @@ export default function Home() {
 
                 <div className="p-8 pt-4 space-y-6">
                   <div className="space-y-4">
-                    {/* 紀錄按鈕與表單 (移動到內容上方) */}
-                    {(data.isToday || data.isPast) && (
-                      <div className="space-y-4">
-                        <button
-                          onClick={() => setActiveFeedbackDate(activeFeedbackDate === data.日期 ? null : data.日期)}
-                          className={`w-full py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 font-black text-sm ${activeFeedbackDate === data.日期 ? 'border-[#8294A5] bg-stone-50 text-[#8294A5]' : 'border-stone-100 bg-white text-stone-400 hover:border-[#8294A5] hover:text-[#8294A5]'}`}
-                        >
-                          {activeFeedbackDate === data.日期 ? <><ChevronUp size={16} strokeWidth={3} />收起表單</> : <><PenLine size={16} strokeWidth={3} />{data.isToday ? '記錄今日' : '補登紀錄'}</>}
-                        </button>
-
-                        {activeFeedbackDate === data.日期 && (
-                          <div className="pb-2">
-                            <DailyFeedbackForm
-                              date={data.日期}
-                              heavenlyStem={data.天干}
-                              dailyPalace={data.流日命宮地支}
-                              onSave={handleSaveFeedback}
-                              onCancel={() => setActiveFeedbackDate(null)}
-                              initialData={record}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
                     <div className="bg-stone-50 rounded-2xl p-6 border border-stone-100/50 space-y-5">
                       {status ? (
                         <>
@@ -306,6 +281,31 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-4">
+                    {/* 紀錄按鈕與表單 (移動到 Journal 上方) */}
+                    {(data.isToday || data.isPast) && (
+                      <div className="space-y-4">
+                        <button
+                          onClick={() => setActiveFeedbackDate(activeFeedbackDate === data.日期 ? null : data.日期)}
+                          className={`w-full py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 font-black text-sm ${activeFeedbackDate === data.日期 ? 'border-[#8294A5] bg-stone-50 text-[#8294A5]' : 'border-stone-100 bg-white text-stone-400 hover:border-[#8294A5] hover:text-[#8294A5]'}`}
+                        >
+                          {activeFeedbackDate === data.日期 ? <><ChevronUp size={16} strokeWidth={3} />收起表單</> : <><PenLine size={16} strokeWidth={3} />{data.isToday ? '記錄今日' : '補登紀錄'}</>}
+                        </button>
+
+                        {activeFeedbackDate === data.日期 && (
+                          <div className="pb-2">
+                            <DailyFeedbackForm
+                              date={data.日期}
+                              heavenlyStem={data.天干}
+                              dailyPalace={data.流日命宮地支}
+                              onSave={handleSaveFeedback}
+                              onCancel={() => setActiveFeedbackDate(null)}
+                              initialData={record}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2 text-stone-200">
                       <PenLine size={14} strokeWidth={3} />
                       <span className="text-[10px] font-black uppercase tracking-widest">Journal // 我的回饋</span>
