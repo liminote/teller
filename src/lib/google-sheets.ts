@@ -72,18 +72,25 @@ export function createSheetsClientWithAuth() {
 
         let auth;
 
-        // 方案 A：使用分開的環境變數（最推薦，Vercel 最穩定）
+        // 方案 A：使用分開的環境變數（清洗加強版）
         if (clientEmail && privateKey) {
+            console.log('[Auth] Using Plan A (Separate Vars)');
+            const cleanKey = privateKey
+                .trim()
+                .replace(/^['"]|['"]$/g, '')
+                .replace(/\\n/g, '\n');
+
             auth = new google.auth.GoogleAuth({
                 credentials: {
-                    client_email: clientEmail,
-                    private_key: privateKey.replace(/\\n/g, '\n').trim(),
+                    client_email: clientEmail.trim().replace(/^['"]|['"]$/g, ''),
+                    private_key: cleanKey,
                 },
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
             });
         }
         // 方案 B：使用 JSON 塊
         else if (keyJson) {
+            console.log('[Auth] Using Plan B (JSON Block)');
             try {
                 const sanitizedJson = keyJson.trim().replace(/^['"]|['"]$/g, '');
                 let credentials = JSON.parse(sanitizedJson);
@@ -92,11 +99,13 @@ export function createSheetsClientWithAuth() {
 
                 auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
             } catch (e) {
-                throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY JSON 解析失敗');
+                console.error('[Auth] Plan B Error:', e);
+                throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY 解析失敗');
             }
         }
         // 方案 C：本地檔案
         else {
+            console.log('[Auth] Using Plan C (Local File)');
             if (!fs.existsSync(SERVICE_ACCOUNT_KEY_PATH)) throw new Error('找不到認證憑證');
             auth = new google.auth.GoogleAuth({
                 keyFile: SERVICE_ACCOUNT_KEY_PATH,
