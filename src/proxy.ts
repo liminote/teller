@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // 排除登入頁面、所有 API 路由以及靜態檔案
@@ -33,16 +33,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
 }
 
-// 設定哪些路徑需要執行 middleware
+// 設定哪些路徑需要執行 middleware/proxy
 export const config = {
     matcher: [
         /*
-         * 匹配所有路徑，除了：
-         * 1. /api (API 路由，通常我們在裡面的路由獨立處理，或統一處理)
-         * 2. /_next (Next.js 內部檔案)
-         * 3. /static (靜態檔案)
-         * 4. favicon.ico, sitemap.xml, robots.txt 等
+         * 匹配所有路徑，除了特定的靜態檔案
          */
-        '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
+        '/((?!_next/static|_next/image|favicon.ico).*)',
     ],
 };
