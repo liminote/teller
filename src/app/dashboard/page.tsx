@@ -229,7 +229,7 @@ export default function Dashboard() {
 
     return (
         <main className="min-h-screen bg-[#E5E2DB] text-[#4A4A4A] pb-32">
-            <div className="container max-w-[1800px] mx-auto px-6 md:px-10 py-12">
+            <div className="container max-w-[1800px] mx-auto pl-6 pr-24 md:pl-10 md:pr-32 py-12">
                 <div className="grid grid-cols-1 gap-10">
 
                     {/* 未來 14 天能量預測矩陣 */}
@@ -487,20 +487,20 @@ export default function Dashboard() {
                                             {/* Top 3 Good/Bad Summary */}
                                             <div className="flex flex-col items-end gap-2 text-xs font-black">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[#8EA68F] bg-[#8EA68F]/10 px-2 py-1 rounded-md text-[10px]">BEST 3</span>
+                                                    <span className="text-[#8EA68F] bg-[#8EA68F]/10 px-2 py-1 rounded-md text-xs">BEST 3</span>
                                                     <div className="flex gap-1">
                                                         {bestPalaces.slice(0, 3).map((p, i) => (
-                                                            <div key={p.key} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500">
+                                                            <div key={p.key} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-xs font-black text-stone-500">
                                                                 {p.key}宮 <span className="opacity-50 ml-1">{(p.rate * 100).toFixed(0)}%</span>
                                                             </div>
                                                         ))}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[#B88A8A] bg-[#B88A8A]/10 px-2 py-1 rounded-md text-[10px]">WORST 3</span>
+                                                    <span className="text-[#B88A8A] bg-[#B88A8A]/10 px-2 py-1 rounded-md text-xs">WORST 3</span>
                                                     <div className="flex gap-1">
                                                         {worstPalaces.slice(0, 3).map((p, i) => (
-                                                            <div key={p.key} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500">
+                                                            <div key={p.key} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-xs font-black text-stone-500">
                                                                 {p.key}宮 <span className="opacity-50 ml-1">{(p.rate * 100).toFixed(0)}%</span>
                                                             </div>
                                                         ))}
@@ -561,18 +561,18 @@ export default function Dashboard() {
                                                                         {cell}
                                                                     </span>
                                                                     <div className="flex flex-col items-end">
-                                                                        <span className="text-[10px] text-stone-400 font-black px-1.5 py-0.5 bg-white/80 rounded-md border border-stone-100 shadow-sm">
+                                                                        <span className="text-xs text-stone-400 font-black px-1.5 py-0.5 bg-white/80 rounded-md border border-stone-100 shadow-sm">
                                                                             {stats.total}d
                                                                         </span>
-                                                                        {isBest && <span className="text-[8px] font-bold text-[#8EA68F] mt-1">BEST</span>}
-                                                                        {isWorst && <span className="text-[8px] font-bold text-[#B88A8A] mt-0.5">WORST</span>}
+                                                                        {isBest && <span className="text-[10px] font-bold text-[#8EA68F] mt-1">BEST</span>}
+                                                                        {isWorst && <span className="text-[10px] font-bold text-[#B88A8A] mt-0.5">WORST</span>}
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="space-y-1.5">
                                                                     {stats.total > 0 ? (
                                                                         <>
-                                                                            <div className="flex justify-between text-[9px] font-black">
+                                                                            <div className="flex justify-between text-[11px] font-black">
                                                                                 <span className="text-[#B88A8A]">{badPct.toFixed(0)}%({stats.bad}d) 不好</span>
                                                                                 <span className="text-[#8EA68F]">好 {goodPct.toFixed(0)}%({stats.good}d)</span>
                                                                             </div>
