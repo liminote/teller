@@ -8,10 +8,13 @@ import {
 import { Loader2, TrendingUp, Filter, AlertCircle, Info } from 'lucide-react';
 import { getGanzhiColor } from '@/lib/ganzhi-colors';
 
+import { generateDailyBasicData } from '@/lib/calendar-utils';
+
 export default function Dashboard() {
     const [data, setData] = useState<any[]>([]);
     const [dailyData, setDailyData] = useState<any[]>([]);
     const [mergedData, setMergedData] = useState<any[]>([]);
+    const [forecastDays, setForecastDays] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -31,12 +34,10 @@ export default function Dashboard() {
                 setData(Array.isArray(recordsJson) ? recordsJson : recordsJson.data || []);
                 setDailyData(Array.isArray(dailyJson) ? dailyJson : dailyJson.data || []);
 
-                // 合併資料：以日期為 key
+                // 合併資料
                 const recordsMap = new Map();
                 (Array.isArray(recordsJson) ? recordsJson : recordsJson.data || []).forEach((record: any) => {
-                    if (record.日期) {
-                        recordsMap.set(record.日期, record);
-                    }
+                    if (record.日期) recordsMap.set(record.日期, record);
                 });
 
                 const merged = (Array.isArray(dailyJson) ? dailyJson : dailyJson.data || []).map((daily: any) => {
@@ -50,6 +51,127 @@ export default function Dashboard() {
                 });
 
                 setMergedData(merged);
+
+                // 生成未來 14 天預測數據
+                // --- 1. 計算所有統計數據 (確保與下方組件邏輯 100% 一致) ---
+                const scoreData = merged.filter((d: any) => d.hasRecord && (d.今日分數 === '好' || d.今日分數 === '普通' || d.今日分數 === '不好'));
+
+                // A. 宮位統計 (Top 4)
+                const palaceScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
+                scoreData.forEach((d: any) => {
+                    const place = d.流日命宮地支;
+                    if (place) {
+                        if (!palaceScoreMap[place]) palaceScoreMap[place] = { good: 0, normal: 0, bad: 0, total: 0 };
+                        if (d.今日分數 === '好') palaceScoreMap[place].good++;
+                        else if (d.今日分數 === '普通') palaceScoreMap[place].normal++;
+                        else if (d.今日分數 === '不好') palaceScoreMap[place].bad++;
+                        palaceScoreMap[place].total++;
+                    }
+                });
+                const bestPalacesSet = new Set(Object.entries(palaceScoreMap)
+                    .map(([key, stats]) => ({ key, rate: stats.good / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 4).map(o => o.key)); // Align with "Best 4" highlights
+                const worstPalacesSet = new Set(Object.entries(palaceScoreMap)
+                    .map(([key, stats]) => ({ key, rate: stats.bad / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 4).map(o => o.key));
+
+                // B. 天干統計 (Top 3)
+                const stemScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
+                scoreData.forEach((d: any) => {
+                    const stem = d.天干;
+                    if (stem) {
+                        if (!stemScoreMap[stem]) stemScoreMap[stem] = { good: 0, normal: 0, bad: 0, total: 0 };
+                        if (d.今日分數 === '好') stemScoreMap[stem].good++;
+                        else if (d.今日分數 === '普通') stemScoreMap[stem].normal++;
+                        else if (d.今日分數 === '不好') stemScoreMap[stem].bad++;
+                        stemScoreMap[stem].total++;
+                    }
+                });
+                const bestStemsSet = new Set(Object.entries(stemScoreMap)
+                    .map(([key, stats]) => ({ key, rate: stats.good / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 3).map(o => o.key));
+                const worstStemsSet = new Set(Object.entries(stemScoreMap)
+                    .map(([key, stats]) => ({ key, rate: stats.bad / stats.total }))
+                    .sort((a, b) => b.rate - a.rate).slice(0, 3).map(o => o.key));
+
+                // C. 八字統計 (Top 10)
+                const ganzhiScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
+                scoreData.forEach((d: any) => {
+                    const gz = `${d.天干}${d.地支}`;
+                    if (!ganzhiScoreMap[gz]) ganzhiScoreMap[gz] = { good: 0, normal: 0, bad: 0, total: 0 };
+                    if (d.今日分數 === '好') ganzhiScoreMap[gz].good++;
+                    else if (d.今日分數 === '普通') ganzhiScoreMap[gz].normal++;
+                    else if (d.今日分數 === '不好') ganzhiScoreMap[gz].bad++;
+                    ganzhiScoreMap[gz].total++;
+                });
+                // Note: Logic here must match the "Top 10" sort logic below exactly
+                const bestBaziSet = new Set(Object.entries(ganzhiScoreMap)
+                    .filter(([_, stats]) => stats.total >= 1)
+                    .sort((a, b) => {
+                        const rateA = a[1].good / a[1].total;
+                        const rateB = b[1].good / b[1].total;
+                        return rateB - rateA || b[1].total - a[1].total;
+                    })
+                    .slice(0, 10).map(o => o[0]));
+
+                const worstBaziSet = new Set(Object.entries(ganzhiScoreMap)
+                    .filter(([_, stats]) => stats.total >= 1)
+                    .sort((a, b) => {
+                        const rateA = a[1].bad / a[1].total;
+                        const rateB = b[1].bad / b[1].total;
+                        return rateB - rateA || b[1].total - a[1].total;
+                    })
+                    .slice(0, 10).map(o => o[0]));
+
+                // --- 2. 生成預測矩陣 ---
+                // 保留基本的機率供綜合分數使用 (fallback)
+                const pMap: Record<string, { r: number; c: number }> = {};
+                const gMap: Record<string, { r: number; c: number }> = {};
+                const sMap: Record<string, { r: number; c: number }> = {};
+                scoreData.forEach((d: any) => {
+                    const p = d.流日命宮地支;
+                    const g = `${d.天干}${d.地支}`;
+                    const s = d.天干;
+                    const isGood = d.今日分數 === '好' ? 1 : d.今日分數 === '普通' ? 0.5 : 0;
+                    if (p) { if (!pMap[p]) pMap[p] = { r: 0, c: 0 }; pMap[p].r += isGood; pMap[p].c++; }
+                    if (g) { if (!gMap[g]) gMap[g] = { r: 0, c: 0 }; gMap[g].r += isGood; gMap[g].c++; }
+                    if (s) { if (!sMap[s]) sMap[s] = { r: 0, c: 0 }; sMap[s].r += isGood; sMap[s].c++; }
+                });
+                const getProb = (map: Record<string, { r: number; c: number }>, key: string) =>
+                    map[key] && map[key].c > 0 ? map[key].r / map[key].c : 0.5;
+
+                const next14Days = [];
+                const today = new Date();
+                for (let i = 0; i < 14; i++) {
+                    const targetDate = new Date(today);
+                    targetDate.setDate(today.getDate() + i);
+                    const y = targetDate.getFullYear();
+                    const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+                    const d = String(targetDate.getDate()).padStart(2, '0');
+                    const dateStr = `${y}-${m}-${d}`;
+
+                    const dayInfo = generateDailyBasicData(dateStr, '巳');
+                    if (dayInfo) {
+                        const probP = getProb(pMap, dayInfo.流日命宮地支);
+                        const probG = getProb(gMap, `${dayInfo.天干}${dayInfo.地支}`);
+                        const probS = getProb(sMap, dayInfo.天干);
+
+                        next14Days.push({
+                            ...dayInfo,
+                            probP, probG, probS,
+                            totalProb: (probP + probG + probS) / 3,
+                            // *** CRITICAL: Use the exact Sets from above for consistency ***
+                            isBestPalace: bestPalacesSet.has(dayInfo.流日命宮地支),
+                            isWorstPalace: worstPalacesSet.has(dayInfo.流日命宮地支),
+                            isBestStem: bestStemsSet.has(dayInfo.天干),
+                            isWorstStem: worstStemsSet.has(dayInfo.天干),
+                            isBestBazi: bestBaziSet.has(`${dayInfo.天干}${dayInfo.地支}`),
+                            isWorstBazi: worstBaziSet.has(`${dayInfo.天干}${dayInfo.地支}`),
+                        });
+                    }
+                }
+                setForecastDays(next14Days);
+
             } catch (err: any) {
                 setError(err.message);
             } finally {
@@ -104,8 +226,95 @@ export default function Dashboard() {
 
     return (
         <main className="min-h-screen bg-[#E5E2DB] text-[#4A4A4A] pb-32">
-            <div className="container max-w-5xl mx-auto px-6 py-16">
+            <div className="container max-w-7xl mx-auto px-4 md:px-6 py-12">
                 <div className="grid grid-cols-1 gap-10">
+
+                    {/* 未來 14 天能量預測矩陣 */}
+                    <section className="bg-white rounded-[32px] p-6 md:p-10 border border-slate-200 shadow-sm overflow-x-auto">
+                        <div className="mb-8">
+                            <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-1">未來 14 天能量預測</h2>
+                            <p className="text-xs text-stone-400">基於您過往 {data.length} 天的歷史數據所推算的能量趨勢</p>
+                        </div>
+
+                        <div className="min-w-[800px]">
+                            <div className="grid grid-cols-[120px_repeat(14,1fr)] gap-y-4">
+                                {/* Header: Dates */}
+                                <div className="font-bold text-xs text-stone-400 flex items-end pb-2">日期</div>
+                                {forecastDays.map((d, i) => (
+                                    <div key={i} className="text-center pb-2 border-b border-stone-100">
+                                        <div className="text-[10px] text-stone-300 font-bold mb-1">{d.星期}</div>
+                                        <div className="text-xs font-black text-stone-600">{d.日期.split('-')[1]}/{d.日期.split('-')[2]}</div>
+                                    </div>
+                                ))}
+
+                                {/* Row 1: Bazi Pillar */}
+                                <div className="font-bold text-xs text-stone-500 flex items-center">八字</div>
+                                {forecastDays.map((d, i) => {
+                                    const bg = d.isBestBazi ? 'bg-[#8EA68F] border-[#8EA68F]' : d.isWorstBazi ? 'bg-[#B88A8A] border-[#B88A8A]' : 'bg-white border-stone-200';
+                                    const text = d.isBestBazi || d.isWorstBazi ? 'text-white' : 'text-stone-600';
+                                    return (
+                                        <div key={i} className="flex justify-center items-center py-2">
+                                            <div className={`px-2 py-1 rounded-md border text-[10px] font-black chinese-font ${bg} ${text} transition-transform hover:scale-105`}>
+                                                {d.天干}{d.地支}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Row 2: Heavenly Stem & Ziwei Stars (Combined) */}
+                                <div className="font-bold text-xs text-stone-500 flex items-center">天干 / 四化</div>
+                                {forecastDays.map((d, i) => {
+                                    const bg = d.isBestStem ? 'bg-[#8EA68F]' : d.isWorstStem ? 'bg-[#B88A8A]' : 'bg-stone-200';
+                                    const text = d.isBestStem || d.isWorstStem ? 'text-white' : 'text-stone-500';
+                                    const subText = d.isBestStem || d.isWorstStem ? 'text-white/80' : 'text-stone-400';
+
+                                    return (
+                                        <div key={i} className="flex justify-center items-center py-2">
+                                            <div className={`w-10 h-14 rounded-lg ${bg} flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-105 gap-1`}>
+                                                <div className={`font-black text-sm chinese-font ${text}`}>{d.天干}</div>
+                                                <div className={`text-[6px] font-black leading-none text-center ${subText}`}>
+                                                    <div>{d.流日四化.slice(0, 2)}</div>
+                                                    <div>{d.流日四化.slice(2)}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Row 3: Earthly Branch (Palace) */}
+                                <div className="font-bold text-xs text-stone-500 flex items-center">流日命宮地支</div>
+                                {forecastDays.map((d, i) => {
+                                    const bg = d.isBestPalace ? 'bg-[#8EA68F]' : d.isWorstPalace ? 'bg-[#B88A8A]' : 'bg-stone-200';
+                                    const text = d.isBestPalace || d.isWorstPalace ? 'text-white' : 'text-stone-500';
+                                    return (
+                                        <div key={i} className="flex justify-center items-center py-2">
+                                            <div className={`w-8 h-8 rounded-lg ${bg} ${text} flex items-center justify-center font-black text-sm chinese-font shadow-sm transition-transform hover:scale-105`}>
+                                                {d.流日命宮地支}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+
+
+                                {/* Row 5: Composite Score */}
+                                <div className="font-bold text-xs text-stone-800 flex items-center border-t border-stone-100 mt-2 pt-2">綜合能量</div>
+                                {forecastDays.map((d, i) => {
+                                    const score = Math.round(d.totalProb * 100);
+                                    const bg = score > 65 ? 'bg-[#8EA68F]' : score < 35 ? 'bg-[#B88A8A]' : 'bg-stone-100';
+                                    const text = score > 65 || score < 35 ? 'text-white' : 'text-stone-400';
+                                    return (
+                                        <div key={i} className="flex justify-center items-center py-2 border-t border-stone-100 mt-2 pt-2">
+                                            <div className={`w-8 h-8 rounded-full ${bg} ${text} flex items-center justify-center font-black text-[10px] shadow-md transition-transform hover:scale-110`}>
+                                                {score}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+
                     {/* 運勢分布統計 */}
                     <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
                         {(() => {
@@ -261,7 +470,33 @@ export default function Dashboard() {
                                 <>
                                     {/* 流日命宮 × 運勢分布 (十二宮位圖) */}
                                     <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm overflow-hidden mb-12">
-                                        <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-8 text-center uppercase tracking-[0.2em]">流日命宮 × 運勢分布</h2>
+                                        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
+                                            <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] uppercase tracking-[0.2em] text-center md:text-left">流日命宮 × 運勢分布</h2>
+
+                                            {/* Top 3 Good/Bad Summary */}
+                                            <div className="flex flex-col items-end gap-2 text-xs font-black">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[#8EA68F] bg-[#8EA68F]/10 px-2 py-1 rounded-md text-[10px]">BEST 3</span>
+                                                    <div className="flex gap-1">
+                                                        {bestPalaces.slice(0, 3).map((p, i) => (
+                                                            <div key={p.key} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500">
+                                                                {p.key}宮 <span className="opacity-50 ml-1">{(p.rate * 100).toFixed(0)}%</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[#B88A8A] bg-[#B88A8A]/10 px-2 py-1 rounded-md text-[10px]">WORST 3</span>
+                                                    <div className="flex gap-1">
+                                                        {worstPalaces.slice(0, 3).map((p, i) => (
+                                                            <div key={p.key} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500">
+                                                                {p.key}宮 <span className="opacity-50 ml-1">{(p.rate * 100).toFixed(0)}%</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         <div className="max-w-4xl mx-auto">
                                             <div className="grid grid-cols-4 gap-3 md:gap-4">
@@ -347,41 +582,41 @@ export default function Dashboard() {
 
                                     {/* 天干地支運勢分析 */}
                                     {(() => {
-                                        const validGanzhi = Object.entries(ganzhiScoreMap).filter(([_, stats]) => stats.total >= 2);
+                                        const validGanzhi = Object.entries(ganzhiScoreMap).filter(([_, stats]) => stats.total >= 1); // Allow even 1 record until more data
                                         if (validGanzhi.length === 0) return null;
 
-                                        const bestLuck = [...validGanzhi].sort((a, b) => (b[1].good / b[1].total) - (a[1].good / a[1].total)).slice(0, 10);
-                                        const worstLuck = [...validGanzhi].sort((a, b) => (b[1].bad / b[1].total) - (a[1].bad / a[1].total)).slice(0, 10);
+                                        const bestLuck = [...validGanzhi].sort((a, b) => {
+                                            const rateA = a[1].good / a[1].total;
+                                            const rateB = b[1].good / b[1].total;
+                                            return rateB - rateA || b[1].total - a[1].total;
+                                        }).slice(0, 10);
+
+                                        const worstLuck = [...validGanzhi].sort((a, b) => {
+                                            const rateA = a[1].bad / a[1].total;
+                                            const rateB = b[1].bad / b[1].total;
+                                            return rateB - rateA || b[1].total - a[1].total;
+                                        }).slice(0, 10);
 
                                         return (
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                                 <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
-                                                    <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2 uppercase tracking-tighter">🟢 好運八字流日 Top 10</h2>
-                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「好」比例由高至低</p>
+                                                    <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2 uppercase tracking-tighter">🟢 BEST 10 八字組合</h2>
+                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「好運」比例排名</p>
                                                     <div className="space-y-4">
                                                         {bestLuck.map(([ganzhi, stats], index) => {
                                                             const goodPct = ((stats.good / stats.total) * 100).toFixed(0);
-                                                            const normalPct = ((stats.normal / stats.total) * 100).toFixed(0);
-                                                            const badPct = ((stats.bad / stats.total) * 100).toFixed(0);
                                                             return (
-                                                                <div key={ganzhi} className="p-5 rounded-2xl bg-gradient-to-br from-[#8EA68F]/5 to-[#8EA68F]/10 border border-[#8EA68F]/20 shadow-sm">
-                                                                    <div className="flex items-center justify-between mb-3">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <span className="text-sm font-black text-[#8EA68F] bg-white w-7 h-7 flex items-center justify-center rounded-full border border-[#8EA68F]/20">#{index + 1}</span>
-                                                                            <span className="text-2xl font-black chinese-font">
-                                                                                <span className={getGanzhiColor(ganzhi[0])}>{ganzhi[0]}</span>
-                                                                                <span className={getGanzhiColor(ganzhi[1])}>{ganzhi[1]}</span>
-                                                                            </span>
-                                                                        </div>
-                                                                        <span className="text-xs text-stone-400 font-bold">({stats.total}d)</span>
+                                                                <div key={ganzhi} className="p-4 rounded-2xl bg-gradient-to-br from-[#8EA68F]/5 to-[#8EA68F]/10 border border-[#8EA68F]/20 shadow-sm flex items-center justify-between">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="text-sm font-black text-[#8EA68F] bg-white w-6 h-6 flex items-center justify-center rounded-full border border-[#8EA68F]/20">#{index + 1}</span>
+                                                                        <span className="text-xl font-black chinese-font tracking-widest">
+                                                                            <span className={getGanzhiColor(ganzhi[0])}>{ganzhi[0]}</span>
+                                                                            <span className={getGanzhiColor(ganzhi[1])}>{ganzhi[1]}</span>
+                                                                        </span>
                                                                     </div>
-                                                                    <div className="h-2.5 w-full bg-stone-100 rounded-full overflow-hidden flex mb-3 shadow-inner">
-                                                                        <div className="bg-[#B88A8A]" style={{ width: `${badPct}%` }}></div>
-                                                                        <div className="bg-[#D4C5A9]" style={{ width: `${normalPct}%` }}></div>
-                                                                        <div className="bg-[#8EA68F]" style={{ width: `${goodPct}%` }}></div>
-                                                                    </div>
-                                                                    <div className="text-xs font-black text-[#8EA68F] uppercase tracking-wider text-right">
-                                                                        好運比例：{goodPct}% <span className="text-stone-300 ml-1">({stats.good}/{stats.total}d)</span>
+                                                                    <div className="text-right">
+                                                                        <div className="text-xs font-black text-[#8EA68F]">{goodPct}% 好運</div>
+                                                                        <div className="text-[10px] text-stone-300 font-bold">{stats.good}/{stats.total} 次記錄</div>
                                                                     </div>
                                                                 </div>
                                                             );
@@ -390,32 +625,23 @@ export default function Dashboard() {
                                                 </section>
 
                                                 <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm">
-                                                    <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2 uppercase tracking-tighter">🔴 不好運八字流日 Top 10</h2>
-                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「不好」比例由高至低</p>
+                                                    <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-2 uppercase tracking-tighter">🔴 WORST 10 八字組合</h2>
+                                                    <p className="text-xs text-stone-400 mb-8 font-medium">按「不好」比例排名</p>
                                                     <div className="space-y-4">
                                                         {worstLuck.map(([ganzhi, stats], index) => {
-                                                            const goodPct = ((stats.good / stats.total) * 100).toFixed(0);
-                                                            const normalPct = ((stats.normal / stats.total) * 100).toFixed(0);
                                                             const badPct = ((stats.bad / stats.total) * 100).toFixed(0);
                                                             return (
-                                                                <div key={ganzhi} className="p-5 rounded-2xl bg-gradient-to-br from-[#B88A8A]/5 to-[#B88A8A]/10 border border-[#B88A8A]/20 shadow-sm">
-                                                                    <div className="flex items-center justify-between mb-3">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <span className="text-sm font-black text-[#B88A8A] bg-white w-7 h-7 flex items-center justify-center rounded-full border border-[#B88A8A]/20">#{index + 1}</span>
-                                                                            <span className="text-2xl font-black chinese-font">
-                                                                                <span className={getGanzhiColor(ganzhi[0])}>{ganzhi[0]}</span>
-                                                                                <span className={getGanzhiColor(ganzhi[1])}>{ganzhi[1]}</span>
-                                                                            </span>
-                                                                        </div>
-                                                                        <span className="text-xs text-stone-400 font-bold">({stats.total}d)</span>
+                                                                <div key={ganzhi} className="p-4 rounded-2xl bg-gradient-to-br from-[#B88A8A]/5 to-[#B88A8A]/10 border border-[#B88A8A]/20 shadow-sm flex items-center justify-between">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="text-sm font-black text-[#B88A8A] bg-white w-6 h-6 flex items-center justify-center rounded-full border border-[#B88A8A]/20">#{index + 1}</span>
+                                                                        <span className="text-xl font-black chinese-font tracking-widest">
+                                                                            <span className={getGanzhiColor(ganzhi[0])}>{ganzhi[0]}</span>
+                                                                            <span className={getGanzhiColor(ganzhi[1])}>{ganzhi[1]}</span>
+                                                                        </span>
                                                                     </div>
-                                                                    <div className="h-2.5 w-full bg-stone-100 rounded-full overflow-hidden flex mb-3 shadow-inner">
-                                                                        <div className="bg-[#B88A8A]" style={{ width: `${badPct}%` }}></div>
-                                                                        <div className="bg-[#D4C5A9]" style={{ width: `${normalPct}%` }}></div>
-                                                                        <div className="bg-[#8EA68F]" style={{ width: `${goodPct}%` }}></div>
-                                                                    </div>
-                                                                    <div className="text-xs font-black text-[#B88A8A] uppercase tracking-wider text-right">
-                                                                        壞運比例：{badPct}% <span className="text-stone-300 ml-1">({stats.bad}/{stats.total}d)</span>
+                                                                    <div className="text-right">
+                                                                        <div className="text-xs font-black text-[#B88A8A]">{badPct}% 不好</div>
+                                                                        <div className="text-[10px] text-stone-300 font-bold">{stats.bad}/{stats.total} 次記錄</div>
                                                                     </div>
                                                                 </div>
                                                             );
@@ -466,12 +692,25 @@ export default function Dashboard() {
                                                         <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] uppercase tracking-[0.2em]">流日天干 × 紫微四化分析</h2>
                                                         <p className="text-xs text-stone-400 mt-1 font-medium italic">Tracing energy patterns through the 10 Heavenly Stems and their transformations.</p>
                                                     </div>
-                                                    <div className="flex gap-2">
-                                                        {bestStem.map(s => (
-                                                            <div key={s.stem} className="px-3 py-1 bg-[#8EA68F]/10 border border-[#8EA68F]/20 rounded-full text-[10px] font-black text-[#8EA68F]">
-                                                                BEST: {s.stem}日
-                                                            </div>
-                                                        ))}
+                                                    <div className="flex flex-col items-end gap-2">
+                                                        <div className="flex gap-2 items-center">
+                                                            <span className="text-[10px] font-black text-[#8EA68F] bg-[#8EA68F]/10 px-2 py-1 rounded-md">BEST 3</span>
+                                                            {bestStem.map(s => (
+                                                                <div key={s.stem} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500 flex flex-col items-center">
+                                                                    <span>{s.stem} ({s.goodRate.toFixed(0)}%)</span>
+                                                                    <span className="text-[8px] text-[#8EA68F] tracking-tighter">{s.sihua}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="flex gap-2 items-center">
+                                                            <span className="text-[10px] font-black text-[#B88A8A] bg-[#B88A8A]/10 px-2 py-1 rounded-md">WORST 3</span>
+                                                            {worstStem.map(s => (
+                                                                <div key={s.stem} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500 flex flex-col items-center">
+                                                                    <span>{s.stem} ({s.badRate.toFixed(0)}%)</span>
+                                                                    <span className="text-[8px] text-[#B88A8A] tracking-tighter">{s.sihua}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 </div>
 

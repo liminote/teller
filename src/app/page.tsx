@@ -170,25 +170,40 @@ export default function Home() {
       <div ref={scrollContainerRef} className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pt-20 pb-24 px-[7vw] gap-6 md:gap-10 items-start">
         {(() => {
           const scoreData = historyData.filter(d => d.hasRecord && d.今日分數);
-          const pMap: Record<string, { r: number }> = {};
-          const gMap: Record<string, { r: number }> = {};
-          const sMap: Record<string, { r: number }> = {};
-
-          scoreData.forEach(d => {
-            const p = d.流日命宮地支;
-            const g = `${d.天干}${d.地支}`;
-            const s = d.天干;
-            const isGood = d.今日分數 === '好' ? 1 : d.今日分數 === '普通' ? 0.5 : 0;
-            if (p) { if (!pMap[p]) pMap[p] = { r: 0.5 }; pMap[p].r = (pMap[p].r + isGood) / 2; }
-            if (g) { if (!gMap[g]) gMap[g] = { r: 0.5 }; gMap[g].r = (gMap[g].r + isGood) / 2; }
-            if (s) { if (!sMap[s]) sMap[s] = { r: 0.5 }; sMap[s].r = (sMap[s].r + isGood) / 2; }
-          });
 
           return dataList.map((data) => {
+            // [修正] 預測算法嚴格化：只使用該日期「之前」的歷史記錄來計算概率
+            // 防止包含今日或未來的數據影響當日的預測（避免 Data Leakage）
+            const pastRecords = scoreData.filter(h => h.日期 < data.日期);
+
+            const pMap: Record<string, { r: number; c: number }> = {};
+            const gMap: Record<string, { r: number; c: number }> = {};
+            const sMap: Record<string, { r: number; c: number }> = {};
+
+            pastRecords.forEach(d => {
+              const p = d.流日命宮地支;
+              const g = `${d.天干}${d.地支}`;
+              const s = d.天干;
+              const isGood = d.今日分數 === '好' ? 1 : d.今日分數 === '普通' ? 0.5 : 0;
+
+              if (p) { if (!pMap[p]) pMap[p] = { r: 0, c: 0 }; pMap[p].r += isGood; pMap[p].c++; }
+              if (g) { if (!gMap[g]) gMap[g] = { r: 0, c: 0 }; gMap[g].r += isGood; gMap[g].c++; }
+              if (s) { if (!sMap[s]) sMap[s] = { r: 0, c: 0 }; sMap[s].r += isGood; sMap[s].c++; }
+            });
+
+            // 計算加權平均機率 (如果沒有歷史數據則默認 0.5)
+            const getProb = (map: Record<string, { r: number; c: number }>, key: string) =>
+              map[key] && map[key].c > 0 ? map[key].r / map[key].c : 0.5;
+
             const pillar = `${data.天干}${data.地支}`;
             const status = statusMapping[pillar];
             const record = dailyRecords[data.日期];
-            const luckIndex = Math.round(((pMap[data.流日命宮地支]?.r ?? 0.5) + (gMap[pillar]?.r ?? 0.5) + (sMap[data.天干]?.r ?? 0.5)) / 3 * 100);
+
+            const probP = getProb(pMap, data.流日命宮地支);
+            const probG = getProb(gMap, pillar);
+            const probS = getProb(sMap, data.天干);
+
+            const luckIndex = Math.round(((probP + probG + probS) / 3) * 100);
             const statusColor = luckIndex > 65 ? "bg-[#8EA68F]" : luckIndex < 35 ? "bg-[#B88A8A]" : "bg-stone-300";
 
             return (
