@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ArrowRight, Sparkles } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
     const [password, setPassword] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -44,6 +44,61 @@ export default function LoginPage() {
     };
 
     return (
+        <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-[#B0B0B0] uppercase tracking-[0.2em] pl-1">
+                    密碼驗證 (PASSWORD)
+                </label>
+                <div className="relative group">
+                    <input
+                        autoFocus
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="請輸入密碼（提示：出生年份共四碼）"
+                        className={`w-full px-6 py-5 bg-stone-50/50 border ${status === 'error' ? 'border-[#B25050]/30 bg-[#B25050]/5' : 'border-stone-100 group-hover:border-[#B5C2B7]/30'} rounded-3xl focus:outline-none focus:ring-4 focus:ring-[#B5C2B7]/10 focus:bg-white transition-all duration-300 chinese-font text-lg font-bold tracking-widest placeholder:tracking-normal placeholder:font-normal placeholder:text-stone-300`}
+                    />
+                    <AnimatePresence>
+                        {status === 'loading' && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute right-5 top-1/2 -translate-y-1/2"
+                            >
+                                <div className="w-5 h-5 border-2 border-[#8294A5]/20 border-t-[#8294A5] rounded-full animate-spin" />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            <button
+                disabled={!password || status === 'loading'}
+                className="w-full py-5 bg-[#5C5C5C] hover:bg-[#444444] text-white rounded-[24px] font-black text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/20 disabled:opacity-50 disabled:shadow-none group"
+            >
+                開始觀測
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <AnimatePresence>
+                {status === 'error' && (
+                    <motion.p
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="text-center text-[#B25050] text-xs font-black uppercase tracking-widest"
+                    >
+                        {message}
+                    </motion.p>
+                )}
+            </AnimatePresence>
+        </form>
+    );
+}
+
+export default function LoginPage() {
+    return (
         <div className="min-h-screen bg-[#F2F0ED] flex items-center justify-center p-6 selection:bg-[#B5C2B7]/30">
             {/* 背景裝飾 */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -77,56 +132,14 @@ export default function LoginPage() {
 
                 {/* Login Card */}
                 <div className="bg-white/70 backdrop-blur-xl rounded-[40px] p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.04)] border border-white">
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-[#B0B0B0] uppercase tracking-[0.2em] pl-1">
-                                密碼驗證 (PASSWORD)
-                            </label>
-                            <div className="relative group">
-                                <input
-                                    autoFocus
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="請輸入密碼（提示：出生年份共四碼）"
-                                    className={`w-full px-6 py-5 bg-stone-50/50 border ${status === 'error' ? 'border-[#B25050]/30 bg-[#B25050]/5' : 'border-stone-100 group-hover:border-[#B5C2B7]/30'} rounded-3xl focus:outline-none focus:ring-4 focus:ring-[#B5C2B7]/10 focus:bg-white transition-all duration-300 chinese-font text-lg font-bold tracking-widest placeholder:tracking-normal placeholder:font-normal placeholder:text-stone-300`}
-                                />
-                                <AnimatePresence>
-                                    {status === 'loading' && (
-                                        <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            className="absolute right-5 top-1/2 -translate-y-1/2"
-                                        >
-                                            <div className="w-5 h-5 border-2 border-[#8294A5]/20 border-t-[#8294A5] rounded-full animate-spin" />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                    <React.Suspense fallback={
+                        <div className="flex flex-col items-center justify-center py-10 gap-4">
+                            <div className="w-10 h-10 border-4 border-stone-100 border-t-[#8294A5] rounded-full animate-spin" />
+                            <p className="text-stone-300 text-[10px] font-black tracking-widest uppercase">Initializing Security...</p>
                         </div>
-
-                        <button
-                            disabled={!password || status === 'loading'}
-                            className="w-full py-5 bg-[#5C5C5C] hover:bg-[#444444] text-white rounded-[24px] font-black text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/20 disabled:opacity-50 disabled:shadow-none group"
-                        >
-                            開始觀測
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </button>
-
-                        <AnimatePresence>
-                            {status === 'error' && (
-                                <motion.p
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0 }}
-                                    className="text-center text-[#B25050] text-xs font-black uppercase tracking-widest"
-                                >
-                                    {message}
-                                </motion.p>
-                            )}
-                        </AnimatePresence>
-                    </form>
+                    }>
+                        <LoginForm />
+                    </React.Suspense>
                 </div>
 
                 {/* Footer Message */}
