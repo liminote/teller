@@ -71,15 +71,32 @@ export function createSheetsClientWithAuth() {
 
         if (keyJson) {
             try {
-                // 處理可能的雙重編碼或額外的引號
-                let credentials = JSON.parse(keyJson);
+                // 1. 清理原始字串，移除可能誤加的外層引號或空白
+                const sanitizedJson = keyJson.trim().replace(/^['"]|['"]$/g, '');
+
+                // 2. 解析 JSON
+                let credentials = JSON.parse(sanitizedJson);
                 if (typeof credentials === 'string') {
                     credentials = JSON.parse(credentials);
                 }
 
-                // 強制修正私鑰格式中的換行符號問題 (OpenSSL 報錯 DECODER routines::unsupported 的主因)
+                // 3. 超強力私鑰修復
                 if (credentials.private_key && typeof credentials.private_key === 'string') {
-                    credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+                    // 處理所有可能的換行轉義情況
+                    let key = credentials.private_key
+                        .replace(/\\n/g, '\n')     // 處理字面上的 \n
+                        .replace(/\\r/g, '')       // 移除可能的 \r
+                        .trim();
+
+                    // 確保私鑰格式標準化
+                    if (!key.endsWith('\n')) key += '\n';
+
+                    credentials.private_key = key;
+
+                    // 檢查私鑰長度（一般 > 1500 字元），若太短代表被截斷
+                    if (key.length < 500) {
+                        throw new Error(`私鑰長度異常 (${key.length})，請檢查 Vercel 環境變數是否填寫完整`);
+                    }
                 }
 
                 if (!credentials.private_key || !credentials.client_email) {
@@ -91,8 +108,8 @@ export function createSheetsClientWithAuth() {
                     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
                 });
             } catch (parseError) {
-                console.error('解析 GOOGLE_SERVICE_ACCOUNT_KEY 失敗:', parseError);
-                throw new Error(`認證資料格式錯誤: ${parseError instanceof Error ? parseError.message : '未知錯誤'}`);
+                console.error('GOOGLE_SERVICE_ACCOUNT_KEY 處理失敗:', parseError);
+                throw new Error(`憑證無效: ${parseError instanceof Error ? parseError.message : '格式異常'}`);
             }
         } else {
             if (!fs.existsSync(SERVICE_ACCOUNT_KEY_PATH)) {
