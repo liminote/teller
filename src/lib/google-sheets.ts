@@ -132,6 +132,7 @@ export function createSheetsClientWithAuth() {
  * 讀取工作表資料
  */
 export async function readSheet(sheetName: string, range?: string) {
+    // 優先嘗試使用目前配置的客戶端
     try {
         const sheets = getSheetsClient();
         const fullRange = range ? `${sheetName}!${range}` : sheetName;
@@ -143,8 +144,24 @@ export async function readSheet(sheetName: string, range?: string) {
 
         return response.data.values || [];
     } catch (error) {
-        console.error(`讀取工作表 ${sheetName} 失敗:`, error);
-        throw error;
+        console.warn(`使用主要客戶端讀取 ${sheetName} 失敗，嘗試使用 API Key 備援...`);
+
+        // 如果原本就是用 Service Account 失敗，強行切換到 API Key 客戶端再試一次
+        try {
+            const backupSheets = google.sheets({
+                version: 'v4',
+                auth: API_KEY,
+            });
+            const fullRange = range ? `${sheetName}!${range}` : sheetName;
+            const response = await backupSheets.spreadsheets.values.get({
+                spreadsheetId: SHEETS_ID,
+                range: fullRange,
+            });
+            return response.data.values || [];
+        } catch (fallbackError) {
+            console.error(`所有讀取嘗試均失敗 (${sheetName}):`, fallbackError);
+            throw error; // 拋出原始錯誤以便診斷
+        }
     }
 }
 
