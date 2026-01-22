@@ -15,42 +15,50 @@ export default function Home() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/status-mapping')
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchInitialData = async () => {
+      try {
+        const mappingRes = await fetch('/api/status-mapping');
+        const mappingData = await mappingRes.json();
+        if (!mappingRes.ok) throw new Error(mappingData.details || mappingData.error || '載入對照表失敗');
+
         const mapping: Record<string, any> = {};
-        if (Array.isArray(data)) {
-          data.forEach((item) => (mapping[item.干支] = item));
+        if (Array.isArray(mappingData)) {
+          mappingData.forEach((item) => (mapping[item.干支] = item));
           setStatusMapping(mapping);
         }
-      });
 
-    fetch('/api/records')
-      .then((res) => res.json())
-      .then((data) => {
+        const recordsRes = await fetch('/api/records');
+        const recordsData = await recordsRes.json();
+        if (!recordsRes.ok) throw new Error(recordsData.details || recordsData.error || '載入歷史記錄失敗');
+
         const records: Record<string, any> = {};
-        if (Array.isArray(data)) {
-          data.forEach((item) => (records[item.日期] = item));
+        if (Array.isArray(recordsData)) {
+          recordsData.forEach((item) => (records[item.日期] = item));
           setDailyRecords(records);
         }
-      });
 
-    // 獲取所有歷史合併資料以供算法使用
-    Promise.all([
-      fetch('/api/records').then(res => res.json()),
-      fetch('/api/daily-data').then(res => res.json())
-    ]).then(([recordsJson, dailyJson]) => {
-      const recordsMap = new Map();
-      const records = Array.isArray(recordsJson) ? recordsJson : recordsJson.data || [];
-      records.forEach((r: any) => { if (r.日期) recordsMap.set(r.日期, r); });
+        // 獲取所有歷史合併資料以供算法使用
+        const dailyRes = await fetch('/api/daily-data');
+        const dailyData = await dailyRes.json();
+        if (!dailyRes.ok) throw new Error(dailyData.details || dailyData.error || '載入每日資料失敗');
 
-      const daily = Array.isArray(dailyJson) ? dailyJson : dailyJson.data || [];
-      const merged = daily.map((d: any) => {
-        const r = recordsMap.get(d.日期);
-        return { ...d, ...r, hasRecord: !!r };
-      });
-      setHistoryData(merged);
-    });
+        const recordsMap = new Map();
+        const recordsArray = Array.isArray(recordsData) ? recordsData : [];
+        recordsArray.forEach((r: any) => { if (r.日期) recordsMap.set(r.日期, r); });
+
+        const dailyArray = Array.isArray(dailyData) ? dailyData : dailyData.data || [];
+        const merged = dailyArray.map((d: any) => {
+          const r = recordsMap.get(d.日期);
+          return { ...d, ...r, hasRecord: !!r };
+        });
+        setHistoryData(merged);
+      } catch (error: any) {
+        console.error('初始化資料失敗:', error);
+        setFeedbackToast({ type: 'error', message: `載入資料失敗：${error.message}` });
+      }
+    };
+
+    fetchInitialData();
 
     const baseDate = new Date();
     const dates = [];

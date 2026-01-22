@@ -44,6 +44,7 @@ export async function GET() {
         return NextResponse.json(data);
     } catch (error) {
         console.error('獲取每日記錄失敗:', error);
-        return NextResponse.json({ error: 'Failed to fetch records' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : '未知錯誤';
+        return NextResponse.json({ error: 'Failed to fetch records', details: errorMessage }, { status: 500 });
     }
 }

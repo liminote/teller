@@ -23,6 +23,7 @@ export async function GET() {
         return NextResponse.json(data);
     } catch (error) {
         console.error('獲取狀態對照表失敗:', error);
-        return NextResponse.json({ error: 'Failed to fetch mapping' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : '未知錯誤';
+        return NextResponse.json({ error: 'Failed to fetch mapping', details: errorMessage }, { status: 500 });
     }
 }

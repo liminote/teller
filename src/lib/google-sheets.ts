@@ -70,12 +70,21 @@ export function createSheetsClientWithAuth() {
         let auth;
 
         if (keyJson) {
-            // 直接解析 JSON 字串，JSON.parse 會正確處理內部的 \n 轉義字元
-            const credentials = JSON.parse(keyJson);
-            auth = new google.auth.GoogleAuth({
-                credentials,
-                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-            });
+            try {
+                // 處理可能的雙重編碼或額外的引號
+                let credentials = JSON.parse(keyJson);
+                if (typeof credentials === 'string') {
+                    credentials = JSON.parse(credentials);
+                }
+
+                auth = new google.auth.GoogleAuth({
+                    credentials,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                });
+            } catch (parseError) {
+                console.error('解析 GOOGLE_SERVICE_ACCOUNT_KEY 失敗:', parseError);
+                throw new Error(`認證資料格式錯誤: ${parseError instanceof Error ? parseError.message : '未知錯誤'}`);
+            }
         } else {
             if (!fs.existsSync(SERVICE_ACCOUNT_KEY_PATH)) {
                 throw new Error('找不到 Service Account 憑證');
