@@ -66,55 +66,38 @@ export function createSheetsClient() {
  */
 export function createSheetsClientWithAuth() {
     try {
+        const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+        const privateKey = process.env.GOOGLE_PRIVATE_KEY;
         const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+
         let auth;
 
-        if (keyJson) {
+        // 方案 A：使用分開的環境變數（最推薦，Vercel 最穩定）
+        if (clientEmail && privateKey) {
+            auth = new google.auth.GoogleAuth({
+                credentials: {
+                    client_email: clientEmail,
+                    private_key: privateKey.replace(/\\n/g, '\n').trim(),
+                },
+                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+            });
+        }
+        // 方案 B：使用 JSON 塊
+        else if (keyJson) {
             try {
-                // 1. 清理原始字串，移除可能誤加的外層引號或空白
                 const sanitizedJson = keyJson.trim().replace(/^['"]|['"]$/g, '');
-
-                // 2. 解析 JSON
                 let credentials = JSON.parse(sanitizedJson);
-                if (typeof credentials === 'string') {
-                    credentials = JSON.parse(credentials);
-                }
+                if (typeof credentials === 'string') credentials = JSON.parse(credentials);
+                if (credentials.private_key) credentials.private_key = credentials.private_key.replace(/\\n/g, '\n').trim();
 
-                // 3. 超強力私鑰修復
-                if (credentials.private_key && typeof credentials.private_key === 'string') {
-                    // 處理所有可能的換行轉義情況
-                    let key = credentials.private_key
-                        .replace(/\\n/g, '\n')     // 處理字面上的 \n
-                        .replace(/\\r/g, '')       // 移除可能的 \r
-                        .trim();
-
-                    // 確保私鑰格式標準化
-                    if (!key.endsWith('\n')) key += '\n';
-
-                    credentials.private_key = key;
-
-                    // 檢查私鑰長度（一般 > 1500 字元），若太短代表被截斷
-                    if (key.length < 500) {
-                        throw new Error(`私鑰長度異常 (${key.length})，請檢查 Vercel 環境變數是否填寫完整`);
-                    }
-                }
-
-                if (!credentials.private_key || !credentials.client_email) {
-                    throw new Error('認證資料不完整 (缺少 private_key 或 client_email)');
-                }
-
-                auth = new google.auth.GoogleAuth({
-                    credentials,
-                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-                });
-            } catch (parseError) {
-                console.error('GOOGLE_SERVICE_ACCOUNT_KEY 處理失敗:', parseError);
-                throw new Error(`憑證無效: ${parseError instanceof Error ? parseError.message : '格式異常'}`);
+                auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
+            } catch (e) {
+                throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY JSON 解析失敗');
             }
-        } else {
-            if (!fs.existsSync(SERVICE_ACCOUNT_KEY_PATH)) {
-                throw new Error('找不到 Service Account 憑證');
-            }
+        }
+        // 方案 C：本地檔案
+        else {
+            if (!fs.existsSync(SERVICE_ACCOUNT_KEY_PATH)) throw new Error('找不到認證憑證');
             auth = new google.auth.GoogleAuth({
                 keyFile: SERVICE_ACCOUNT_KEY_PATH,
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
