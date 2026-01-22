@@ -250,11 +250,11 @@ export default function Dashboard() {
                                 {/* Row 1: Bazi Pillar */}
                                 <div className="font-bold text-xs text-stone-500 flex items-center">八字</div>
                                 {forecastDays.map((d, i) => {
-                                    const bg = d.isBestBazi ? 'bg-[#8EA68F] border-[#8EA68F]' : d.isWorstBazi ? 'bg-[#B88A8A] border-[#B88A8A]' : 'bg-white border-stone-200';
-                                    const text = d.isBestBazi || d.isWorstBazi ? 'text-white' : 'text-stone-600';
+                                    const bg = d.isBestBazi ? 'bg-[#8EA68F]' : d.isWorstBazi ? 'bg-[#B88A8A]' : 'bg-stone-200';
+                                    const text = d.isBestBazi || d.isWorstBazi ? 'text-white' : 'text-stone-500';
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2">
-                                            <div className={`px-2 py-1 rounded-md border text-[10px] font-black chinese-font ${bg} ${text} transition-transform hover:scale-105`}>
+                                            <div className={`w-8 h-8 rounded-lg ${bg} ${text} flex items-center justify-center font-black text-sm chinese-font shadow-sm transition-transform hover:scale-105`}>
                                                 {d.天干}{d.地支}
                                             </div>
                                         </div>
@@ -297,12 +297,13 @@ export default function Dashboard() {
 
 
 
-                                {/* Row 5: Composite Score */}
+                                {/* Row 4: Composite Score */}
                                 <div className="font-bold text-xs text-stone-800 flex items-center border-t border-stone-100 mt-2 pt-2">綜合能量</div>
                                 {forecastDays.map((d, i) => {
                                     const score = Math.round(d.totalProb * 100);
-                                    const bg = score > 65 ? 'bg-[#8EA68F]' : score < 35 ? 'bg-[#B88A8A]' : 'bg-stone-100';
-                                    const text = score > 65 || score < 35 ? 'text-white' : 'text-stone-400';
+                                    // Adjusted thresholds: >60 (Green), <40 (Red)
+                                    const bg = score > 60 ? 'bg-[#8EA68F]' : score < 40 ? 'bg-[#B88A8A]' : 'bg-stone-100';
+                                    const text = score > 60 || score < 40 ? 'text-white' : 'text-stone-400';
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2 border-t border-stone-100 mt-2 pt-2">
                                             <div className={`w-8 h-8 rounded-full ${bg} ${text} flex items-center justify-center font-black text-[10px] shadow-md transition-transform hover:scale-110`}>
