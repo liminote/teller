@@ -239,7 +239,7 @@ export default function Dashboard() {
                             <p className="text-xs text-stone-400">基於您過往 {data.length} 天的歷史數據所推算的能量趨勢</p>
                         </div>
 
-                        <div className="min-w-[1200px]">
+                        <div className="min-w-[1600px]">
                             <div className="grid grid-cols-[120px_repeat(14,1fr)] gap-y-6">
                                 {/* Header: Dates */}
                                 <div className="font-bold text-sm text-stone-400 flex items-end pb-2">日期</div>
