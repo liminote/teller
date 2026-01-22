@@ -74,16 +74,21 @@ export function createSheetsClientWithAuth() {
         const header = '-----BEGIN PRIVATE KEY-----';
         const footer = '-----END PRIVATE KEY-----';
 
-        // 方案 A：使用分開的環境變數（終極重建版）
+        // 方案 A：使用分開的環境變數（終極重建版 - 嚴格 64 字元斷行）
         if (clientEmail && privateKey) {
-            console.log('[Auth] Using Plan A (Reconstruction)');
+            console.log('[Auth] Using Plan A (Strict PEM Reconstruction)');
             let core = privateKey.trim().replace(/^['"]|['"]$/g, '');
             if (core.includes(header)) core = core.split(header)[1];
             if (core.includes(footer)) core = core.split(footer)[0];
 
-            // 移除所有可能干擾的空白、換行與轉義字元
-            const base64 = core.replace(/\s+/g, '').replace(/\\n/g, '').trim();
-            const cleanKey = `${header}\n${base64}\n${footer}\n`;
+            // 移除所有空白，拿到純粹的 base64 代碼
+            const pureBase64 = core.replace(/\s+/g, '').replace(/\\n/g, '').trim();
+
+            // 重要：強行每 64 字元斷行一次（標準 PEM 規範）
+            const lines = pureBase64.match(/.{1,64}/g);
+            const formattedBase64 = lines ? lines.join('\n') : pureBase64;
+
+            const cleanKey = `${header}\n${formattedBase64}\n${footer}\n`;
 
             auth = new google.auth.GoogleAuth({
                 credentials: {
@@ -93,7 +98,7 @@ export function createSheetsClientWithAuth() {
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
             });
         }
-        // 方案 B：使用 JSON 塊
+        // 方案 B：使用 JSON 塊 (同步套用嚴格斷行)
         else if (keyJson) {
             console.log('[Auth] Using Plan B (JSON Block Reconstruction)');
             try {
@@ -104,7 +109,10 @@ export function createSheetsClientWithAuth() {
                     let core = credentials.private_key;
                     if (core.includes(header)) core = core.split(header)[1];
                     if (core.includes(footer)) core = core.split(footer)[0];
-                    credentials.private_key = `${header}\n${core.replace(/\s+/g, '').replace(/\\n/g, '')}\n${footer}\n`;
+                    const pure = core.replace(/\s+/g, '').replace(/\\n/g, '').trim();
+                    const lines = pure.match(/.{1,64}/g);
+                    const formatted = lines ? lines.join('\n') : pure;
+                    credentials.private_key = `${header}\n${formatted}\n${footer}\n`;
                 }
                 auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
             } catch (e) {
