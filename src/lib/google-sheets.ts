@@ -72,13 +72,28 @@ export function createSheetsClientWithAuth() {
 
         let auth;
 
-        // 方案 A：使用分開的環境變數（清洗加強版）
+        // 方案 A：使用分開的環境變數（超強力 PEM 修復版）
         if (clientEmail && privateKey) {
             console.log('[Auth] Using Plan A (Separate Vars)');
-            const cleanKey = privateKey
-                .trim()
-                .replace(/^['"]|['"]$/g, '')
-                .replace(/\\n/g, '\n');
+
+            // 1. 基本清理
+            let cleanKey = privateKey.trim().replace(/^['"]|['"]$/g, '');
+
+            // 2. 處理 \n 轉義字元
+            cleanKey = cleanKey.replace(/\\n/g, '\n');
+
+            // 3. 處理「扁平化」問題：如果私鑰中沒有換行（可能被環境變數平台轉成空格了）
+            if (!cleanKey.includes('\n')) {
+                cleanKey = cleanKey
+                    .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+                    .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----');
+            }
+
+            // 4. 終極修復：確保 header 和 footer 沒有多餘空白且換行正確
+            cleanKey = cleanKey
+                .replace(/-----BEGIN PRIVATE KEY-----/g, '-----BEGIN PRIVATE KEY-----\n')
+                .replace(/-----END PRIVATE KEY-----/g, '\n-----END PRIVATE KEY-----\n')
+                .replace(/\n+/g, '\n');
 
             auth = new google.auth.GoogleAuth({
                 credentials: {
