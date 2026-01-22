@@ -77,6 +77,15 @@ export function createSheetsClientWithAuth() {
                     credentials = JSON.parse(credentials);
                 }
 
+                // 強制修正私鑰格式中的換行符號問題 (OpenSSL 報錯 DECODER routines::unsupported 的主因)
+                if (credentials.private_key && typeof credentials.private_key === 'string') {
+                    credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+                }
+
+                if (!credentials.private_key || !credentials.client_email) {
+                    throw new Error('認證資料不完整 (缺少 private_key 或 client_email)');
+                }
+
                 auth = new google.auth.GoogleAuth({
                     credentials,
                     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
