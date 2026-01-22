@@ -321,13 +321,13 @@ export default function Home() {
                           {(record.八字_體感 || record.八字_體驗) && (
                             <div className="p-5 space-y-2">
                               <div className="text-[9px] text-slate-500 font-black uppercase tracking-wider bg-slate-50 w-fit px-1.5 py-0.5 rounded">八字實證</div>
-                              <p className="chinese-font text-sm text-slate-800 leading-relaxed font-bold">{record.八字_體感 || record.八字_體驗}</p>
+                              <p className="chinese-font text-sm text-slate-800 leading-relaxed font-bold whitespace-pre-wrap">{record.八字_體感 || record.八字_體驗}</p>
                             </div>
                           )}
                           {record.紫微_四化簡述 && (
                             <div className="p-5 space-y-2">
                               <div className="text-[9px] text-slate-500 font-black uppercase tracking-wider bg-slate-50 w-fit px-1.5 py-0.5 rounded">紫微回饋</div>
-                              <p className="chinese-font text-sm text-slate-700 leading-relaxed font-bold">{record.紫微_四化簡述}</p>
+                              <p className="chinese-font text-sm text-slate-700 leading-relaxed font-bold whitespace-pre-wrap">{record.紫微_四化簡述}</p>
                             </div>
                           )}
                           <div className="p-5 bg-slate-50/50 grid grid-cols-5 gap-2">
