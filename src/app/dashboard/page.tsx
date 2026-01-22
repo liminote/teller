@@ -239,24 +239,24 @@ export default function Dashboard() {
                             <p className="text-xs text-stone-400">基於您過往 {data.length} 天的歷史數據所推算的能量趨勢</p>
                         </div>
 
-                        <div className="min-w-[800px]">
-                            <div className="grid grid-cols-[120px_repeat(14,1fr)] gap-y-4">
+                        <div className="min-w-[1200px]">
+                            <div className="grid grid-cols-[120px_repeat(14,1fr)] gap-y-6">
                                 {/* Header: Dates */}
-                                <div className="font-bold text-xs text-stone-400 flex items-end pb-2">日期</div>
+                                <div className="font-bold text-sm text-stone-400 flex items-end pb-2">日期</div>
                                 {forecastDays.map((d, i) => (
                                     <div key={i} className="text-center pb-2 border-b border-stone-100">
-                                        <div className="text-[10px] text-stone-300 font-bold mb-1">{d.星期}</div>
-                                        <div className="text-xs font-black text-stone-600">{d.日期.split('-')[1]}/{d.日期.split('-')[2]}</div>
+                                        <div className="text-xs text-stone-300 font-bold mb-1">{d.星期}</div>
+                                        <div className="text-base font-black text-stone-600">{d.日期.split('-')[1]}/{d.日期.split('-')[2]}</div>
                                     </div>
                                 ))}
 
                                 {/* Row 1: Bazi Pillar */}
-                                <div className="font-bold text-xs text-stone-500 flex items-center">八字</div>
+                                <div className="font-bold text-sm text-stone-500 flex items-center">八字</div>
                                 {forecastDays.map((d, i) => {
                                     const border = d.isBestBazi ? 'border-2 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstBazi ? 'border-2 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2">
-                                            <div className={`w-8 h-8 rounded-lg ${border} flex items-center justify-center font-black text-sm chinese-font shadow-sm transition-transform hover:scale-105`}>
+                                            <div className={`w-12 h-12 rounded-xl ${border} flex items-center justify-center font-black text-lg chinese-font shadow-sm transition-transform hover:scale-105`}>
                                                 <span className={getGanzhiColor(d.天干)}>{d.天干}</span>
                                                 <span className={getGanzhiColor(d.地支)}>{d.地支}</span>
                                             </div>
@@ -265,16 +265,16 @@ export default function Dashboard() {
                                 })}
 
                                 {/* Row 2: Heavenly Stem & Ziwei Stars (Combined) */}
-                                <div className="font-bold text-xs text-stone-500 flex items-center">天干 / 四化</div>
+                                <div className="font-bold text-sm text-stone-500 flex items-center">天干 / 四化</div>
                                 {forecastDays.map((d, i) => {
                                     const border = d.isBestStem ? 'border-2 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstStem ? 'border-2 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
                                     const subText = 'text-stone-400';
 
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2">
-                                            <div className={`w-10 h-14 rounded-lg ${border} flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-105 gap-1`}>
-                                                <div className={`font-black text-sm chinese-font ${getGanzhiColor(d.天干)}`}>{d.天干}</div>
-                                                <div className={`text-[6px] font-black leading-none text-center ${subText}`}>
+                                            <div className={`w-14 h-20 rounded-xl ${border} flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-105 gap-1`}>
+                                                <div className={`font-black text-2xl chinese-font ${getGanzhiColor(d.天干)}`}>{d.天干}</div>
+                                                <div className={`text-[9px] font-black leading-tight text-center ${subText}`}>
                                                     <div>{d.流日四化.slice(0, 2)}</div>
                                                     <div>{d.流日四化.slice(2)}</div>
                                                 </div>
@@ -284,12 +284,12 @@ export default function Dashboard() {
                                 })}
 
                                 {/* Row 3: Earthly Branch (Palace) */}
-                                <div className="font-bold text-xs text-stone-500 flex items-center">流日命宮地支</div>
+                                <div className="font-bold text-sm text-stone-500 flex items-center">流日命宮地支</div>
                                 {forecastDays.map((d, i) => {
                                     const border = d.isBestPalace ? 'border-2 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstPalace ? 'border-2 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2">
-                                            <div className={`w-8 h-8 rounded-lg ${border} flex items-center justify-center font-black text-sm chinese-font shadow-sm transition-transform hover:scale-105`}>
+                                            <div className={`w-12 h-12 rounded-xl ${border} flex items-center justify-center font-black text-lg chinese-font shadow-sm transition-transform hover:scale-105`}>
                                                 <span className={getGanzhiColor(d.流日命宮地支)}>{d.流日命宮地支}</span>
                                             </div>
                                         </div>
