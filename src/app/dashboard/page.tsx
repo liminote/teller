@@ -62,7 +62,7 @@ export default function Dashboard() {
                     return ((stats.good * 1) + (stats.normal * 0.5) + (stats.bad * 0)) / stats.total;
                 };
 
-                // A. 宮位統計 (Top 4) using Average Score
+                // A. 宮位統計 (Top 3) using Average Score
                 const palaceScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
                 scoreData.forEach((d: any) => {
                     const place = d.流日命宮地支;
@@ -76,10 +76,10 @@ export default function Dashboard() {
                 });
                 const bestPalacesSet = new Set(Object.entries(palaceScoreMap)
                     .map(([key, stats]) => ({ key, score: getAvgScore(stats) }))
-                    .sort((a, b) => b.score - a.score).slice(0, 4).map(o => o.key)); // Highest Score
+                    .sort((a, b) => b.score - a.score).slice(0, 3).map(o => o.key)); // Highest Score
                 const worstPalacesSet = new Set(Object.entries(palaceScoreMap)
                     .map(([key, stats]) => ({ key, score: getAvgScore(stats) }))
-                    .sort((a, b) => a.score - b.score).slice(0, 4).map(o => o.key)); // Lowest Score
+                    .sort((a, b) => a.score - b.score).slice(0, 3).map(o => o.key)); // Lowest Score
 
                 // B. 天干統計 (Top 3) using Average Score
                 const stemScoreMap: Record<string, { good: number; normal: number; bad: number; total: number }> = {};
@@ -469,18 +469,18 @@ export default function Dashboard() {
                                 return ((stats.good * 1) + (stats.normal * 0.5) + (stats.bad * 0)) / stats.total;
                             };
 
-                            // 最好的 4 格：按「分數」由高到低
+                            // 最好的 3 格：按「分數」由高到低
                             const bestPalaces = Object.entries(palaceScoreMap)
                                 .map(([key, stats]) => ({ key, score: getAvgScore(stats), rate: stats.good / stats.total }))
                                 .sort((a, b) => b.score - a.score);
 
-                            // 最差的 4 格：按「分數」由低到高
+                            // 最差的 3 格：按「分數」由低到高
                             const worstPalaces = Object.entries(palaceScoreMap)
                                 .map(([key, stats]) => ({ key, score: getAvgScore(stats), rate: stats.bad / stats.total }))
                                 .sort((a, b) => a.score - b.score);
 
-                            const best4 = new Set(bestPalaces.slice(0, 4).map(o => o.key));
-                            const worst4 = new Set(worstPalaces.slice(0, 4).map(o => o.key));
+                            const best4 = new Set(bestPalaces.slice(0, 3).map(o => o.key));
+                            const worst4 = new Set(worstPalaces.slice(0, 3).map(o => o.key));
 
                             return (
                                 <>
@@ -542,10 +542,19 @@ export default function Dashboard() {
                                                         const normalPct = stats.total > 0 ? ((stats.normal / stats.total) * 100) : 0;
                                                         const badPct = stats.total > 0 ? ((stats.bad / stats.total) * 100) : 0;
 
-                                                        // 動態樣式
+                                                        // 動態樣式 & 狀態檢查
+                                                        const isBest = best4.has(cell);
+                                                        const isWorst = worst4.has(cell);
+
                                                         let cardStyle = "bg-white border-stone-100";
-                                                        if (best4.has(cell)) cardStyle = "bg-[#8EA68F]/5 border-[#8EA68F]/20 shadow-[0_0_15px_rgba(142,166,143,0.1)]";
-                                                        else if (worst4.has(cell)) cardStyle = "bg-[#B88A8A]/5 border-[#B88A8A]/20 shadow-[0_0_15px_rgba(184,138,138,0.1)]";
+                                                        if (isBest && isWorst) {
+                                                            // Half Red / Half Green for volatile energy
+                                                            cardStyle = "bg-gradient-to-br from-[#8EA68F]/10 via-transparent to-[#B88A8A]/10 border-stone-200 shadow-[0_0_15px_rgba(150,150,150,0.1)]";
+                                                        } else if (isBest) {
+                                                            cardStyle = "bg-[#8EA68F]/5 border-[#8EA68F]/20 shadow-[0_0_15px_rgba(142,166,143,0.1)]";
+                                                        } else if (isWorst) {
+                                                            cardStyle = "bg-[#B88A8A]/5 border-[#B88A8A]/20 shadow-[0_0_15px_rgba(184,138,138,0.1)]";
+                                                        }
 
                                                         return (
                                                             <div
@@ -560,8 +569,8 @@ export default function Dashboard() {
                                                                         <span className="text-[10px] text-stone-400 font-black px-1.5 py-0.5 bg-white/80 rounded-md border border-stone-100 shadow-sm">
                                                                             {stats.total}d
                                                                         </span>
-                                                                        {best4.has(cell) && <span className="text-[8px] font-bold text-[#8EA68F] mt-1">BEST</span>}
-                                                                        {worst4.has(cell) && <span className="text-[8px] font-bold text-[#B88A8A] mt-1">WORST</span>}
+                                                                        {isBest && <span className="text-[8px] font-bold text-[#8EA68F] mt-1">BEST</span>}
+                                                                        {isWorst && <span className="text-[8px] font-bold text-[#B88A8A] mt-0.5">WORST</span>}
                                                                     </div>
                                                                 </div>
 
