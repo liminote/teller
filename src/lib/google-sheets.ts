@@ -70,7 +70,9 @@ export function createSheetsClientWithAuth() {
         let auth;
 
         if (keyJson) {
-            const credentials = JSON.parse(keyJson);
+            // 處理 Vercel 環境變數中可能存在的換行符號問題
+            const formattedKey = keyJson.replace(/\\n/g, '\n');
+            const credentials = JSON.parse(formattedKey);
             auth = new google.auth.GoogleAuth({
                 credentials,
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
