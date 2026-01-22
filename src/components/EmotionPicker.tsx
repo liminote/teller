@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { EMOTIONS, getQuadrantBg, type Emotion } from '@/lib/emotion-data';
 import { X } from 'lucide-react';
 
@@ -12,6 +13,16 @@ interface EmotionPickerProps {
 
 export default function EmotionPicker({ selected, onChange, onClose }: EmotionPickerProps) {
     const [tempSelected, setTempSelected] = useState<string[]>(selected);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // 禁止背景捲動
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, []);
 
     const handleToggle = (chinese: string) => {
         if (tempSelected.includes(chinese)) {
@@ -28,7 +39,8 @@ export default function EmotionPicker({ selected, onChange, onClose }: EmotionPi
         onClose();
     };
 
-    // 按象限分組情緒
+    if (!mounted) return null;
+
     const quadrants = {
         red: EMOTIONS.filter(e => e.quadrant === 'red'),
         yellow: EMOTIONS.filter(e => e.quadrant === 'yellow'),
@@ -45,11 +57,11 @@ export default function EmotionPicker({ selected, onChange, onClose }: EmotionPi
         emotions: Emotion[];
         bgColor: string;
     }) => (
-        <div className="space-y-2">
-            <div className="text-[9px] font-black uppercase tracking-wider text-stone-400 px-1">
+        <div className="space-y-3">
+            <div className="text-sm font-black uppercase tracking-wider text-black px-1 border-l-4 border-slate-900 pl-3">
                 {title}
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
                 {emotions.map((emotion) => {
                     const isSelected = tempSelected.includes(emotion.chinese);
                     return (
@@ -58,20 +70,20 @@ export default function EmotionPicker({ selected, onChange, onClose }: EmotionPi
                             onClick={() => handleToggle(emotion.chinese)}
                             disabled={!isSelected && tempSelected.length >= 3}
                             className={`
-                                px-2 py-1.5 rounded-lg text-xs font-medium chinese-font
-                                transition-all border
+                                px-4 py-3 rounded-xl text-base font-bold chinese-font
+                                transition-all border-2
                                 ${isSelected
-                                    ? 'border-[#8294A5] bg-[#8294A5] text-white scale-[1.02] shadow-sm'
-                                    : 'border-stone-200 hover:border-stone-300'
+                                    ? 'border-black bg-black text-white scale-[1.02] shadow-lg'
+                                    : 'border-slate-200 hover:border-black bg-white'
                                 }
                                 ${!isSelected && tempSelected.length >= 3
-                                    ? 'opacity-30 cursor-not-allowed'
+                                    ? 'opacity-20 cursor-not-allowed'
                                     : 'cursor-pointer'
                                 }
                             `}
                             style={{
                                 backgroundColor: isSelected ? undefined : bgColor,
-                                color: isSelected ? undefined : '#6B7280'
+                                color: isSelected ? undefined : '#000000'
                             }}
                         >
                             {emotion.chinese}
@@ -82,50 +94,47 @@ export default function EmotionPicker({ selected, onChange, onClose }: EmotionPi
         </div>
     );
 
-    return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
+    return createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+            <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border-4 border-black">
                 {/* Header */}
-                <div className="p-6 border-b border-stone-100 flex items-center justify-between">
+                <div className="p-8 border-b-2 border-slate-100 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-black tracking-tight text-[#4A4A4A]">
+                        <h2 className="text-3xl font-black tracking-tight text-black">
                             情緒量表
                         </h2>
-                        <p className="text-xs text-stone-400 mt-1 font-medium">
-                            選擇最多 3 個情緒（已選 {tempSelected.length}/3）
+                        <p className="text-base text-slate-600 mt-2 font-bold">
+                            請選擇最多 3 個情緒 (已選 {tempSelected.length}/3)
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full hover:bg-stone-100 flex items-center justify-center transition-colors text-stone-400 hover:text-stone-600"
+                        className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center transition-colors text-black hover:bg-black hover:text-white"
                     >
-                        <X size={20} strokeWidth={2.5} />
+                        <X size={28} strokeWidth={3} />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* 上半部：高能量 */}
+                <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <QuadrantSection
-                            title="🔴 高能量 + 低愉悅"
+                            title="🔴 高能量 + 低愉悅 (憤怒、壓力)"
                             emotions={quadrants.red}
                             bgColor={getQuadrantBg('red')}
                         />
                         <QuadrantSection
-                            title="🟡 高能量 + 高愉悅"
+                            title="🟡 高能量 + 高愉悅 (興奮、快樂)"
                             emotions={quadrants.yellow}
                             bgColor={getQuadrantBg('yellow')}
                         />
-
-                        {/* 下半部：低能量 */}
                         <QuadrantSection
-                            title="🔵 低能量 + 低愉悅"
+                            title="🔵 低能量 + 低愉悅 (沮喪、疲累)"
                             emotions={quadrants.blue}
                             bgColor={getQuadrantBg('blue')}
                         />
                         <QuadrantSection
-                            title="🟢 低能量 + 高愉悅"
+                            title="🟢 低能量 + 高愉悅 (平靜、放鬆)"
                             emotions={quadrants.green}
                             bgColor={getQuadrantBg('green')}
                         />
@@ -133,21 +142,22 @@ export default function EmotionPicker({ selected, onChange, onClose }: EmotionPi
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-stone-100 flex gap-3">
+                <div className="p-8 border-t-2 border-slate-100 flex gap-4 bg-slate-50 rounded-b-[36px]">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-3 px-4 rounded-xl border-2 border-stone-200 bg-white text-stone-400 font-black text-sm hover:border-stone-300 hover:text-stone-500 transition-all"
+                        className="flex-1 py-5 px-6 rounded-2xl border-2 border-slate-300 bg-white text-black font-black text-lg hover:bg-slate-100 transition-all"
                     >
                         取消
                     </button>
                     <button
                         onClick={handleConfirm}
-                        className="flex-1 py-3 px-4 rounded-xl border-2 border-[#8294A5] bg-[#8294A5] text-white font-black text-sm hover:bg-[#6B7F91] hover:border-[#6B7F91] transition-all"
+                        className="flex-1 py-5 px-6 rounded-2xl border-2 border-black bg-black text-white font-black text-lg hover:bg-slate-800 transition-all shadow-xl"
                     >
                         確認選擇 ({tempSelected.length})
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

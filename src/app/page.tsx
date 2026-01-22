@@ -183,9 +183,9 @@ export default function Home() {
                 <div className="p-8 pb-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="text-sm font-black text-[#8294A5] mb-1 chinese-font uppercase tracking-widest">{data.星期}</div>
-                      <h1 className="text-6xl font-black tracking-tighter mb-2 text-[#4A4A4A]">{data.日期.split('-').slice(1).join('/')}</h1>
-                      <div className="flex items-center gap-2 text-stone-300 text-xs font-bold">
+                      <div className="text-base font-black text-slate-900 mb-1 chinese-font uppercase tracking-widest">{data.星期}</div>
+                      <h1 className="text-7xl font-black tracking-tighter mb-4 text-black">{data.日期.split('-').slice(1).join('/')}</h1>
+                      <div className="flex items-center gap-2 text-slate-600 text-sm font-black">
                         <span className="chinese-font">{data.農曆}</span>
                         <span>·</span>
                         <span className="chinese-font">{data.節氣}</span>
@@ -193,37 +193,37 @@ export default function Home() {
                         <span className="uppercase">{data.紫微流月}</span>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-center pt-2">
+                    <div className="flex gap-6 items-center pt-2">
                       <div className="flex flex-col items-center">
-                        <div className="text-[8px] text-stone-200 font-bold uppercase mb-1">Bazi</div>
-                        <div className="flex text-4xl font-black chinese-font">
+                        <div className="text-xs text-slate-400 font-black uppercase mb-1">Bazi</div>
+                        <div className="flex text-5xl font-black chinese-font">
                           <span className={getCharColor(data.天干)}>{data.天干}</span>
                           <span className={getCharColor(data.地支)}>{data.地支}</span>
                         </div>
                       </div>
-                      <div className="w-[1px] h-10 bg-stone-50 mt-3" />
+                      <div className="w-[2px] h-12 bg-slate-100 mt-3" />
                       <div className="flex flex-col items-center">
-                        <div className="text-[8px] text-stone-200 font-bold uppercase mb-1">Palace</div>
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-4xl font-black chinese-font text-stone-400">{data.流日命宮地支}</span>
-                          <span className="text-[9px] text-stone-200 font-bold">宮</span>
+                        <div className="text-xs text-slate-400 font-black uppercase mb-1">Palace</div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-5xl font-black chinese-font text-slate-800">{data.流日命宮地支}</span>
+                          <span className="text-xs text-slate-400 font-black">宮</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* 能量整合預報區 */}
-                  <div className="mt-8 mb-2 p-4 bg-stone-50/50 rounded-2xl border border-stone-100 flex items-center justify-between group">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        <span className="text-[10px] font-black text-stone-300 uppercase tracking-widest whitespace-nowrap flex-shrink-0">AI Forecast // 運勢預測</span>
-                        <div className="h-[1px] w-full bg-stone-200/50"></div>
+                  <div className="mt-8 mb-2 p-6 bg-slate-50 rounded-2xl border-2 border-slate-200 flex items-center justify-between group">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="text-xs font-black text-slate-900 uppercase tracking-widest whitespace-nowrap flex-shrink-0">AI Forecast // 運勢預測</span>
+                        <div className="h-[2px] w-full bg-slate-200"></div>
                       </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded leading-none text-white ${statusColor}`}>
+                      <div className="flex items-baseline gap-3">
+                        <span className={`text-xs font-black px-2 py-1 rounded leading-none text-white ${statusColor}`}>
                           {luckIndex > 65 ? "高能" : luckIndex < 35 ? "低迷" : "平穩"}
                         </span>
-                        <span className="text-[10px] font-medium text-stone-400 italic font-bold">基于 {scoreData.length}d 歷史規律</span>
+                        <span className="text-sm font-black text-slate-600 italic">基于 {scoreData.length}d 歷史規律</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end min-w-[60px]">
@@ -306,50 +306,50 @@ export default function Home() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 text-stone-200">
-                      <PenLine size={14} strokeWidth={3} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Journal // 我的回饋</span>
+                    <div className="flex items-center gap-3 text-black mb-4">
+                      <PenLine size={24} strokeWidth={4} />
+                      <span className="text-xl font-black uppercase tracking-widest">Journal // 我的回饋</span>
                     </div>
-                    <div className="bg-white rounded-2xl border-2 border-stone-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+                    <div className="bg-white rounded-[32px] border-4 border-slate-100 shadow-xl overflow-hidden">
                       {record ? (
-                        <div className="divide-y divide-stone-100">
+                        <div className="divide-y-2 divide-slate-100">
                           {(record.八字_體感 || record.八字_體驗) && (
-                            <div className="p-5 space-y-2">
-                              <div className="text-[9px] text-[#8EA68F] font-black uppercase tracking-wider bg-[#F0F4F0] w-fit px-1.5 py-0.5 rounded">八字實證</div>
-                              <p className="chinese-font text-sm text-stone-700 leading-relaxed font-medium">{record.八字_體感 || record.八字_體驗}</p>
+                            <div className="p-8 space-y-3">
+                              <div className="text-xs text-white font-black uppercase tracking-wider bg-green-700 w-fit px-3 py-1 rounded">八字實證</div>
+                              <p className="chinese-font text-2xl text-black leading-relaxed font-bold">{record.八字_體感 || record.八字_體驗}</p>
                             </div>
                           )}
                           {record.紫微_四化簡述 && (
-                            <div className="p-5 space-y-2">
-                              <div className="text-[9px] text-[#8294A5] font-black uppercase tracking-wider bg-[#F0F2F5] w-fit px-1.5 py-0.5 rounded">紫微回饋</div>
-                              <p className="chinese-font text-sm text-stone-500 leading-relaxed font-medium">{record.紫微_四化簡述}</p>
+                            <div className="p-8 space-y-3">
+                              <div className="text-xs text-white font-black uppercase tracking-wider bg-blue-700 w-fit px-3 py-1 rounded">紫微回饋</div>
+                              <p className="chinese-font text-2xl text-slate-800 leading-relaxed font-bold">{record.紫微_四化簡述}</p>
                             </div>
                           )}
-                          <div className="p-5 bg-stone-50/30 grid grid-cols-5 gap-2">
+                          <div className="p-8 bg-slate-50 grid grid-cols-5 gap-4">
                             {[
-                              { label: 'OVERALL', val: record.今日分數, color: record.今日分數 === '好' ? 'text-[#8EA68F]' : record.今日分數 === '不好' ? 'text-[#B88A8A]' : 'text-stone-300' },
+                              { label: 'OVERALL', val: record.今日分數, color: record.今日分數 === '好' ? 'text-green-700' : record.今日分數 === '不好' ? 'text-red-700' : 'text-slate-900' },
                               { label: 'WORK', val: record.紫微_工作 },
                               { label: 'HEALTH', val: record.紫微_健康 },
                               { label: 'WEALTH', val: record.紫微_財運 },
                               { label: 'ENERGY', val: record.紫微_能量 },
                             ].map((item, i) => (
                               <div key={i} className="text-center">
-                                <div className="text-[10px] text-stone-300 font-bold mb-1 tracking-wider uppercase">{item.label}</div>
-                                <div className={`text-xl font-black ${item.color || 'text-stone-300'}`}>{item.val || '-'}</div>
+                                <div className="text-xs text-slate-500 font-black mb-2 tracking-wider uppercase">{item.label}</div>
+                                <div className={`text-4xl font-black ${item.color || 'text-slate-900'}`}>{item.val || '-'}</div>
                               </div>
                             ))}
                           </div>
                           {record.情緒 && Array.isArray(record.情緒) && record.情緒.length > 0 && (
-                            <div className="px-5 pb-4 pt-2">
-                              <div className="text-[10px] text-stone-300 font-bold uppercase tracking-wider mb-2">Emotion</div>
-                              <div className="text-sm text-stone-500 chinese-font font-medium">
+                            <div className="px-8 pb-8 pt-4">
+                              <div className="text-xs text-slate-500 font-black uppercase tracking-wider mb-3">Emotion</div>
+                              <div className="text-2xl text-black chinese-font font-black bg-white p-4 rounded-xl border-2 border-slate-100">
                                 {record.情緒.join(' · ')}
                               </div>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div className="py-16 text-center text-stone-300 italic text-sm">Waiting for logs...</div>
+                        <div className="py-24 text-center text-slate-300 italic text-xl font-bold">Waiting for logs...</div>
                       )}
                     </div>
                   </div>

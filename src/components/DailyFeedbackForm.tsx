@@ -114,22 +114,22 @@ export default function DailyFeedbackForm({
     }) => {
         const options: Array<'不好' | '普通' | '好'> = ['不好', '普通', '好'];
         const colors = {
-            '好': 'bg-[#F0F7F0] border-[#8EA68F] text-[#2D4A31] ring-2 ring-[#8EA68F]/20',
-            '普通': 'bg-[#F0F2F5] border-[#8294A5] text-[#2A3B4D] ring-2 ring-[#8294A5]/20',
-            '不好': 'bg-[#F9F1F1] border-[#B88A8A] text-[#5C2B2E] ring-2 ring-[#B88A8A]/20',
+            '好': 'bg-[#F0F7F0] border-black text-black ring-4 ring-green-100',
+            '普通': 'bg-[#F0F2F5] border-black text-black ring-4 ring-slate-100',
+            '不好': 'bg-[#F9F1F1] border-black text-black ring-4 ring-red-100',
         };
 
         return (
-            <div className="flex gap-3">
+            <div className="flex gap-4">
                 {options.map((option) => (
                     <button
                         key={option}
                         type="button"
                         onClick={() => onChange(option)}
-                        className={`flex-1 py-4 px-4 rounded-xl border-2 font-black text-base transition-all chinese-font
+                        className={`flex-1 py-6 px-4 rounded-2xl border-4 font-black text-xl transition-all chinese-font
               ${value === option
-                                ? colors[option] + ' scale-[1.02] border-opacity-100 shadow-md'
-                                : 'bg-white border-stone-100 text-[#8E8E8E] hover:border-stone-300'
+                                ? colors[option] + ' scale-[1.05] shadow-xl'
+                                : 'bg-white border-slate-200 text-slate-400 hover:border-black'
                             }`}
                     >
                         {option}
@@ -151,20 +151,20 @@ export default function DailyFeedbackForm({
         const scores = [1, 2, 3];
 
         return (
-            <div className="space-y-2">
-                <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#5C5C5C] chinese-font">
+            <div className="space-y-3">
+                <div className="text-xs font-black uppercase tracking-[0.15em] text-black chinese-font">
                     {label}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     {scores.map((score) => (
                         <button
                             key={score}
                             type="button"
                             onClick={() => onChange(score)}
-                            className={`flex-1 aspect-square rounded-lg border-2 font-black text-base transition-all
+                            className={`flex-1 aspect-square rounded-xl border-4 font-black text-2xl transition-all
                 ${value === score
-                                    ? 'bg-[#E0E7ED] border-[#5A6A7A] text-[#1A2B3D] scale-[1.05]'
-                                    : 'bg-white border-stone-100 text-[#B0B0B0] hover:border-stone-300'
+                                    ? 'bg-black border-black text-white scale-[1.1] shadow-lg'
+                                    : 'bg-white border-slate-200 text-slate-400 hover:border-black'
                                 }`}
                         >
                             {score}
@@ -178,8 +178,8 @@ export default function DailyFeedbackForm({
     return (
         <div className="bg-stone-50 rounded-2xl p-6 border border-stone-100/50 space-y-6">
             {/* 今日分數 */}
-            <div className="space-y-3">
-                <div className="text-[11px] font-black uppercase tracking-[0.2em] text-[#5C5C5C]">
+            <div className="space-y-4">
+                <div className="text-sm font-black uppercase tracking-[0.2em] text-black bg-slate-100 w-fit px-3 py-1 rounded-full">
                     今日分數 /// OVERALL SCORE
                 </div>
                 <ScoreSelector
@@ -213,62 +213,62 @@ export default function DailyFeedbackForm({
             </div>
 
             {/* 情緒選擇 */}
-            <div className="space-y-3 pt-2">
-                <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#5C5C5C] mb-2">
-                    今日情緒 // Emotion Meter
+            <div className="space-y-4 pt-4">
+                <div className="text-sm font-black uppercase tracking-[0.15em] text-black bg-slate-100 w-fit px-3 py-1 rounded-full">
+                    今日情緒 // EMOTION METER
                 </div>
                 <button
                     type="button"
                     onClick={() => setShowEmotionPicker(true)}
-                    className="w-full py-4 px-4 rounded-xl border-2 border-stone-200 bg-white text-base text-[#4A4A4A] hover:border-[#8294A5] hover:text-[#2A3B4D] transition-all flex items-center justify-center gap-2 font-bold shadow-sm"
+                    className="w-full py-6 px-6 rounded-2xl border-4 border-black bg-white text-xl text-black hover:bg-slate-50 transition-all flex items-center justify-center gap-3 font-black shadow-lg"
                 >
-                    <Sparkles size={16} strokeWidth={2.5} className="text-[#8294A5]" />
+                    <Sparkles size={24} strokeWidth={3} className="text-black" />
                     {formData.情緒.length > 0
                         ? `已選擇 ${formData.情緒.length} 個情緒`
                         : '選擇情緒（最多3個）'
                     }
                 </button>
                 {formData.情緒.length > 0 && (
-                    <div className="text-base text-[#2A3B4D] chinese-font text-center py-2 font-black px-4 bg-white rounded-lg border border-divider">
+                    <div className="text-xl text-black chinese-font text-center py-4 font-black px-6 bg-slate-50 rounded-2xl border-2 border-black">
                         {formData.情緒.join(' · ')}
                     </div>
                 )}
             </div>
 
             {/* 文字回饋 */}
-            <div className="space-y-4 pt-2">
+            <div className="space-y-6 pt-4">
                 <div>
-                    <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#2D4A31] mb-2 bg-[#E8F0E8] w-fit px-2 py-1 rounded">
+                    <div className="text-sm font-black uppercase tracking-[0.15em] text-white mb-3 bg-green-700 w-fit px-3 py-1 rounded-md">
                         八字實證 // Bazi Experience
                     </div>
                     <textarea
                         value={formData.八字_體感}
                         onChange={(e) => setFormData({ ...formData, 八字_體感: e.target.value })}
-                        placeholder="記錄今日八字能量的體驗與感受..."
-                        className="w-full h-28 px-4 py-3 rounded-xl border-2 border-stone-200 bg-white text-base text-[#1A1A1A] chinese-font leading-relaxed resize-none focus:outline-none focus:border-[#8EA68F] transition-colors placeholder:text-[#B0B0B0] font-medium"
+                        placeholder="請記錄今日八字能量的體驗與感受..."
+                        className="w-full h-36 px-5 py-4 rounded-2xl border-4 border-slate-200 bg-white text-xl text-black chinese-font leading-relaxed resize-none focus:outline-none focus:border-black transition-colors placeholder:text-slate-300 font-bold"
                     />
                 </div>
 
                 <div>
-                    <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#2A3B4D] mb-2 bg-[#E0E7ED] w-fit px-2 py-1 rounded">
+                    <div className="text-sm font-black uppercase tracking-[0.15em] text-white mb-3 bg-blue-700 w-fit px-3 py-1 rounded-md">
                         紫微回饋 // Zi Wei Reflection
                     </div>
                     <textarea
                         value={formData.紫微_四化簡述}
                         onChange={(e) => setFormData({ ...formData, 紫微_四化簡述: e.target.value })}
-                        placeholder="記錄今日紫微四化的感觸與心得..."
-                        className="w-full h-28 px-4 py-3 rounded-xl border-2 border-stone-200 bg-white text-base text-[#1A1A1A] chinese-font leading-relaxed resize-none focus:outline-none focus:border-[#8294A5] transition-colors placeholder:text-[#B0B0B0] font-medium"
+                        placeholder="請記錄今日紫微四化的感觸與心得..."
+                        className="w-full h-36 px-5 py-4 rounded-2xl border-4 border-slate-200 bg-white text-xl text-black chinese-font leading-relaxed resize-none focus:outline-none focus:border-black transition-colors placeholder:text-slate-300 font-bold"
                     />
                 </div>
             </div>
 
             {/* 操作按鈕 */}
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-4 pt-6">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={isSubmitting}
-                    className="flex-1 py-3 px-4 rounded-xl border-2 border-stone-200 bg-white text-stone-400 font-black text-sm hover:border-stone-300 hover:text-stone-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-6 px-6 rounded-2xl border-4 border-slate-200 bg-white text-slate-500 font-black text-xl hover:border-black hover:text-black transition-all disabled:opacity-50"
                 >
                     取消
                 </button>
@@ -276,11 +276,11 @@ export default function DailyFeedbackForm({
                     type="button"
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="flex-1 py-3 px-4 rounded-xl border-2 border-[#8294A5] bg-[#8294A5] text-white font-black text-sm hover:bg-[#6B7F91] hover:border-[#6B7F91] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 py-6 px-6 rounded-2xl border-4 border-black bg-black text-white font-black text-xl hover:bg-slate-800 transition-all shadow-xl flex items-center justify-center gap-3"
                 >
                     {isSubmitting ? (
                         <>
-                            <Loader2 size={16} className="animate-spin" />
+                            <Loader2 size={24} className="animate-spin" />
                             儲存中...
                         </>
                     ) : (
