@@ -18,28 +18,41 @@ function LoginForm() {
         if (!password) return;
 
         setStatus('loading');
+        setMessage('');
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
+                body: JSON.stringify({ password: password.trim() }),
+                signal: controller.signal
             });
 
+            clearTimeout(timeoutId);
             const data = await res.json();
 
             if (res.ok) {
                 // 成功登入
                 router.push(redirectTo);
-                router.refresh();
+                // 给一點時間讓路由跳轉，如果沒跳轉再重新整理
+                setTimeout(() => {
+                    router.refresh();
+                }, 100);
             } else {
                 setStatus('error');
                 setMessage(data.error || '驗證失敗');
-                setTimeout(() => setStatus('idle'), 2000);
+                setTimeout(() => setStatus('idle'), 3000);
             }
         } catch (error) {
+            clearTimeout(timeoutId);
             setStatus('error');
-            setMessage('網路連線錯誤');
-            setTimeout(() => setStatus('idle'), 2000);
+            setMessage(error instanceof Error && error.name === 'AbortError'
+                ? '連線超時，請檢查網路'
+                : '網路連線錯誤');
+            setTimeout(() => setStatus('idle'), 3000);
         }
     };
 
