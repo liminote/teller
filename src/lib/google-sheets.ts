@@ -66,6 +66,9 @@ export function createSheetsClient() {
  */
 export function createSheetsClientWithAuth() {
     try {
+        // 全新方案：Base64 編碼的 JSON（最穩定，無特殊符號干擾）
+        const base64Creds = process.env.GOOGLE_CREDENTIALS_BASE64;
+
         const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
         const privateKey = process.env.GOOGLE_PRIVATE_KEY;
         const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -74,8 +77,23 @@ export function createSheetsClientWithAuth() {
         const header = '-----BEGIN PRIVATE KEY-----';
         const footer = '-----END PRIVATE KEY-----';
 
+        // 方案 S：Base64 完整憑證（終極穩定的解決方案）
+        if (base64Creds) {
+            console.log('[Auth] Using Plan S (Base64 Credentials)');
+            try {
+                const jsonStr = Buffer.from(base64Creds, 'base64').toString('utf-8');
+                const credentials = JSON.parse(jsonStr);
+                auth = new google.auth.GoogleAuth({
+                    credentials,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+                });
+            } catch (e) {
+                console.error('Base64 解碼失敗:', e);
+                throw new Error('GOOGLE_CREDENTIALS_BASE64 解碼或解析失敗');
+            }
+        }
         // 方案 A：使用分開的環境變數（終極重建版 - 嚴格 64 字元斷行）
-        if (clientEmail && privateKey) {
+        else if (clientEmail && privateKey) {
             console.log('[Auth] Using Plan A (Strict PEM Reconstruction)');
             let core = privateKey.trim().replace(/^['"]|['"]$/g, '');
             if (core.includes(header)) core = core.split(header)[1];
