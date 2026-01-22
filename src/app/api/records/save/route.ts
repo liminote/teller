@@ -4,11 +4,12 @@ import { appendToSheet, updateSheet, readSheet, SHEET_NAMES } from '@/lib/google
 export async function POST(request: Request) {
     try {
         const data = await request.json();
+        console.log('接收到儲存請求:', data);
 
         // 驗證必填欄位
-        if (!data.日期 || !data.今日分數) {
+        if (!data.日期) {
             return NextResponse.json(
-                { error: '缺少必填欄位：日期和今日分數' },
+                { error: '缺少必填欄位：日期' },
                 { status: 400 }
             );
         }

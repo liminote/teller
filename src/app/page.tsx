@@ -103,12 +103,17 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('儲存失敗');
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || '儲存失敗');
+      }
+
       setFeedbackToast({ type: 'success', message: '記錄已儲存！' });
       setActiveFeedbackDate(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('儲存紀錄失敗:', error);
-      setFeedbackToast({ type: 'error', message: '儲存失敗，請稍後再試' });
+      setFeedbackToast({ type: 'error', message: `儲存失敗：${error.message}` });
     }
   };
 
