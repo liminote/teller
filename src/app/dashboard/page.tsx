@@ -721,76 +721,78 @@ export default function Dashboard() {
 
                                         return (
                                             <section className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm mt-10">
-                                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                                                    <div>
-                                                        <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] uppercase tracking-[0.2em]">流日天干 × 紫微四化分析</h2>
-                                                        <p className="text-xs text-stone-400 mt-1 font-medium italic">Tracing energy patterns through the 10 Heavenly Stems and their transformations.</p>
-                                                    </div>
-                                                    <div className="flex flex-col items-end gap-2">
-                                                        <div className="flex gap-2 items-center">
-                                                            <span className="text-[10px] font-black text-[#8EA68F] bg-[#8EA68F]/10 px-2 py-1 rounded-md">BEST 3</span>
-                                                            {bestStem.map(s => (
-                                                                <div key={s.stem} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500 flex flex-col items-center">
-                                                                    <span>{s.stem} ({s.goodRate.toFixed(0)}%)</span>
-                                                                    <span className="text-[8px] text-[#8EA68F] tracking-tighter">{s.sihua}</span>
-                                                                </div>
-                                                            ))}
+                                                <div className="max-w-6xl mx-auto">
+                                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                                                        <div>
+                                                            <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] uppercase tracking-[0.2em]">流日天干 × 紫微四化分析</h2>
+                                                            <p className="text-xs text-stone-400 mt-1 font-medium italic">Tracing energy patterns through the 10 Heavenly Stems and their transformations.</p>
                                                         </div>
-                                                        <div className="flex gap-2 items-center">
-                                                            <span className="text-[10px] font-black text-[#B88A8A] bg-[#B88A8A]/10 px-2 py-1 rounded-md">WORST 3</span>
-                                                            {worstStem.map(s => (
-                                                                <div key={s.stem} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-[10px] font-black text-stone-500 flex flex-col items-center">
-                                                                    <span>{s.stem} ({s.badRate.toFixed(0)}%)</span>
-                                                                    <span className="text-[8px] text-[#B88A8A] tracking-tighter">{s.sihua}</span>
-                                                                </div>
-                                                            ))}
+                                                        <div className="flex flex-col items-end gap-2">
+                                                            <div className="flex gap-2 items-center">
+                                                                <span className="text-[10px] font-black text-[#8EA68F] bg-[#8EA68F]/10 px-2 py-1 rounded-md text-xs">BEST 3</span>
+                                                                {bestStem.map(s => (
+                                                                    <div key={s.stem} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-xs font-black text-stone-500 flex flex-col items-center">
+                                                                        <span>{s.stem} ({s.goodRate.toFixed(0)}%)</span>
+                                                                        <span className="text-[10px] text-[#8EA68F] tracking-tighter">{s.sihua}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <div className="flex gap-2 items-center">
+                                                                <span className="text-[10px] font-black text-[#B88A8A] bg-[#B88A8A]/10 px-2 py-1 rounded-md text-xs">WORST 3</span>
+                                                                {worstStem.map(s => (
+                                                                    <div key={s.stem} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-md text-xs font-black text-stone-500 flex flex-col items-center">
+                                                                        <span>{s.stem} ({s.badRate.toFixed(0)}%)</span>
+                                                                        <span className="text-[10px] text-[#B88A8A] tracking-tighter">{s.sihua}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
 
-                                                <div className="grid grid-cols-1 gap-6">
-                                                    {stemStats.sort((a, b) => '甲乙丙丁戊己庚辛壬癸'.indexOf(a.stem) - '甲乙丙丁戊己庚辛壬癸'.indexOf(b.stem)).map((s) => (
-                                                        <div key={s.stem} className="group flex flex-col md:flex-row md:items-center gap-4 p-5 rounded-2xl hover:bg-stone-50 transition-all border border-transparent hover:border-stone-100 hover:shadow-sm">
-                                                            <div className="flex items-center gap-6 w-full md:w-56 overflow-hidden">
-                                                                <div className={`text-4xl font-black chinese-font ${getGanzhiColor(s.stem)} flex-shrink-0`}>{s.stem}</div>
-                                                                <div className="flex flex-col gap-1.5 min-w-0">
-                                                                    <div className="text-[9px] font-black text-stone-300 uppercase leading-none tracking-[0.2em]">四化星曜</div>
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        {s.sihua.split('').map((star, i) => {
-                                                                            const labels = ['祿', '權', '科', '忌'];
-                                                                            const colors = [
-                                                                                'text-[#8EA68F] bg-[#8EA68F]/10', // 祿: 綠色
-                                                                                'text-[#B88A8A] bg-[#B88A8A]/10', // 權: 酒紅/粉紅
-                                                                                'text-[#8294A5] bg-[#8294A5]/10', // 科: 藍色
-                                                                                'text-[#B25050] bg-[#B25050]/10'  // 忌: 紅色
-                                                                            ];
-                                                                            return (
-                                                                                <div key={i} className="flex flex-col items-center">
-                                                                                    <div className={`w-8 h-8 flex items-center justify-center font-black text-sm rounded-lg ${colors[i]}`}>
-                                                                                        {star}
+                                                    <div className="grid grid-cols-1 gap-6">
+                                                        {stemStats.sort((a, b) => '甲乙丙丁戊己庚辛壬癸'.indexOf(a.stem) - '甲乙丙丁戊己庚辛壬癸'.indexOf(b.stem)).map((s) => (
+                                                            <div key={s.stem} className="group flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-2xl hover:bg-stone-50 transition-all border border-transparent hover:border-stone-100 hover:shadow-sm">
+                                                                <div className="flex items-center gap-8 w-full md:w-64 overflow-hidden">
+                                                                    <div className={`text-5xl font-black chinese-font ${getGanzhiColor(s.stem)} flex-shrink-0`}>{s.stem}</div>
+                                                                    <div className="flex flex-col gap-2 min-w-0">
+                                                                        <div className="text-[10px] font-black text-stone-300 uppercase leading-none tracking-[0.2em]">四化星曜</div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            {s.sihua.split('').map((star, i) => {
+                                                                                const labels = ['祿', '權', '科', '忌'];
+                                                                                const colors = [
+                                                                                    'text-[#8EA68F] bg-[#8EA68F]/10',
+                                                                                    'text-[#B88A8A] bg-[#B88A8A]/10',
+                                                                                    'text-[#8294A5] bg-[#8294A5]/10',
+                                                                                    'text-[#B25050] bg-[#B25050]/10'
+                                                                                ];
+                                                                                return (
+                                                                                    <div key={i} className="flex flex-col items-center">
+                                                                                        <div className={`w-9 h-9 flex items-center justify-center font-black text-sm rounded-lg ${colors[i]}`}>
+                                                                                            {star}
+                                                                                        </div>
+                                                                                        <span className="text-[10px] font-bold text-stone-300 mt-1">{labels[i]}</span>
                                                                                     </div>
-                                                                                    <span className="text-[8px] font-bold text-stone-300 mt-1">{labels[i]}</span>
-                                                                                </div>
-                                                                            );
-                                                                        })}
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex-1 space-y-3">
+                                                                    <div className="flex justify-between text-xs font-black tracking-tighter text-stone-400">
+                                                                        <span className="text-[#B88A8A]">{s.badRate.toFixed(0)}%({s.bad}d) 不好</span>
+                                                                        <span className="tracking-widest">TOTAL {s.total}d</span>
+                                                                        <span className="text-[#8EA68F]">好 {s.goodRate.toFixed(0)}%({s.good}d)</span>
+                                                                    </div>
+                                                                    <div className="h-3 w-full bg-stone-100/50 rounded-full overflow-hidden flex shadow-inner group-hover:h-4 transition-all">
+                                                                        <div className="bg-[#B88A8A] transition-all" style={{ width: `${s.badRate}%` }}></div>
+                                                                        <div className="bg-[#D4C5A9] transition-all" style={{ width: `${s.normalRate}%` }}></div>
+                                                                        <div className="bg-[#8EA68F] transition-all" style={{ width: `${s.goodRate}%` }}></div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <div className="flex-1 space-y-2">
-                                                                <div className="flex justify-between text-[10px] font-black tracking-tighter text-stone-400">
-                                                                    <span className="text-[#B88A8A]">{s.badRate.toFixed(0)}%({s.bad}d) 不好</span>
-                                                                    <span className="tracking-widest">TOTAL {s.total}d</span>
-                                                                    <span className="text-[#8EA68F]">好 {s.goodRate.toFixed(0)}%({s.good}d)</span>
-                                                                </div>
-                                                                <div className="h-2.5 w-full bg-stone-100/50 rounded-full overflow-hidden flex shadow-inner group-hover:h-3 transition-all">
-                                                                    <div className="bg-[#B88A8A] transition-all" style={{ width: `${s.badRate}%` }}></div>
-                                                                    <div className="bg-[#D4C5A9] transition-all" style={{ width: `${s.normalRate}%` }}></div>
-                                                                    <div className="bg-[#8EA68F] transition-all" style={{ width: `${s.goodRate}%` }}></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        ))}
+                                                    </div>
                                                 </div>
 
                                                 <div className="mt-10 p-6 bg-stone-50 rounded-2xl border border-stone-100 italic text-stone-400 text-xs leading-relaxed">
