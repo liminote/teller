@@ -71,29 +71,19 @@ export function createSheetsClientWithAuth() {
         const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
         let auth;
+        const header = '-----BEGIN PRIVATE KEY-----';
+        const footer = '-----END PRIVATE KEY-----';
 
-        // 方案 A：使用分開的環境變數（超強力 PEM 修復版）
+        // 方案 A：使用分開的環境變數（終極重建版）
         if (clientEmail && privateKey) {
-            console.log('[Auth] Using Plan A (Separate Vars)');
+            console.log('[Auth] Using Plan A (Reconstruction)');
+            let core = privateKey.trim().replace(/^['"]|['"]$/g, '');
+            if (core.includes(header)) core = core.split(header)[1];
+            if (core.includes(footer)) core = core.split(footer)[0];
 
-            // 1. 基本清理
-            let cleanKey = privateKey.trim().replace(/^['"]|['"]$/g, '');
-
-            // 2. 處理 \n 轉義字元
-            cleanKey = cleanKey.replace(/\\n/g, '\n');
-
-            // 3. 處理「扁平化」問題：如果私鑰中沒有換行（可能被環境變數平台轉成空格了）
-            if (!cleanKey.includes('\n')) {
-                cleanKey = cleanKey
-                    .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
-                    .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----');
-            }
-
-            // 4. 終極修復：確保 header 和 footer 沒有多餘空白且換行正確
-            cleanKey = cleanKey
-                .replace(/-----BEGIN PRIVATE KEY-----/g, '-----BEGIN PRIVATE KEY-----\n')
-                .replace(/-----END PRIVATE KEY-----/g, '\n-----END PRIVATE KEY-----\n')
-                .replace(/\n+/g, '\n');
+            // 移除所有可能干擾的空白、換行與轉義字元
+            const base64 = core.replace(/\s+/g, '').replace(/\\n/g, '').trim();
+            const cleanKey = `${header}\n${base64}\n${footer}\n`;
 
             auth = new google.auth.GoogleAuth({
                 credentials: {
@@ -105,23 +95,25 @@ export function createSheetsClientWithAuth() {
         }
         // 方案 B：使用 JSON 塊
         else if (keyJson) {
-            console.log('[Auth] Using Plan B (JSON Block)');
+            console.log('[Auth] Using Plan B (JSON Block Reconstruction)');
             try {
                 const sanitizedJson = keyJson.trim().replace(/^['"]|['"]$/g, '');
                 let credentials = JSON.parse(sanitizedJson);
                 if (typeof credentials === 'string') credentials = JSON.parse(credentials);
-                if (credentials.private_key) credentials.private_key = credentials.private_key.replace(/\\n/g, '\n').trim();
-
+                if (credentials.private_key) {
+                    let core = credentials.private_key;
+                    if (core.includes(header)) core = core.split(header)[1];
+                    if (core.includes(footer)) core = core.split(footer)[0];
+                    credentials.private_key = `${header}\n${core.replace(/\s+/g, '').replace(/\\n/g, '')}\n${footer}\n`;
+                }
                 auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
             } catch (e) {
-                console.error('[Auth] Plan B Error:', e);
                 throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY 解析失敗');
             }
         }
         // 方案 C：本地檔案
         else {
-            console.log('[Auth] Using Plan C (Local File)');
-            if (!fs.existsSync(SERVICE_ACCOUNT_KEY_PATH)) throw new Error('找不到認證憑證');
+            if (!fs.existsSync(SERVICE_ACCOUNT_KEY_PATH)) throw new Error('找不到認證憑證 (Key file missing)');
             auth = new google.auth.GoogleAuth({
                 keyFile: SERVICE_ACCOUNT_KEY_PATH,
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
