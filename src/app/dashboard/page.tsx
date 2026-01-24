@@ -143,6 +143,14 @@ export default function Dashboard() {
                 const getProb = (map: Record<string, { r: number; c: number }>, key: string) =>
                     map[key] && map[key].c > 0 ? map[key].r / map[key].c : 0.5;
 
+                const getTenGodForBingFire = (stem: string) => {
+                    const map: Record<string, string> = {
+                        '甲': '梟', '乙': '印', '丙': '比', '丁': '劫', '戊': '食',
+                        '己': '傷', '庚': '才', '辛': '財', '壬': '殺', '癸': '官'
+                    };
+                    return map[stem] || '';
+                };
+
                 const forecastDaysData = [];
                 const today = new Date();
                 for (let i = 0; i < 60; i++) {
@@ -192,6 +200,7 @@ export default function Dashboard() {
                             totalProb: (probP + probG + probS) / 3,
                             punishment,
                             skyAlert,
+                            tenGod: getTenGodForBingFire(dayInfo.天干),
                             // *** CRITICAL: Use the exact Sets from above for consistency ***
                             isBestPalace: bestPalacesSet.has(dayInfo.流日命宮地支),
                             isWorstPalace: worstPalacesSet.has(dayInfo.流日命宮地支),
@@ -323,8 +332,11 @@ export default function Dashboard() {
 
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2">
-                                            <div className={`w-14 h-20 rounded-xl ${border} flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-105 gap-1`}>
-                                                <div className={`font-black text-2xl chinese-font ${getGanzhiColor(d.天干)}`}>{d.天干}</div>
+                                            <div className={`w-14 h-24 rounded-xl ${border} flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-105 gap-1`}>
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`font-black text-2xl chinese-font ${getGanzhiColor(d.天干)}`}>{d.天干}</div>
+                                                    <div className="text-[10px] font-bold text-stone-400 -mt-1">({d.tenGod})</div>
+                                                </div>
                                                 <div className={`text-[9px] font-black leading-tight text-center ${subText}`}>
                                                     <div>{d.流日四化.slice(0, 2)}</div>
                                                     <div>{d.流日四化.slice(2)}</div>
