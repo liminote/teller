@@ -164,10 +164,9 @@ export default function Dashboard() {
                         const monthBranch = dayInfo.八字流月.charAt(1);
                         const dayBranch = dayInfo.地支;
 
-                        // 1. 恃勢之刑: 丑、戌、未
-                        const bullyingSet = new Set(['丑', '戌', '未']);
-                        if (bullyingSet.has(monthBranch) && bullyingSet.has(dayBranch) && monthBranch !== dayBranch) {
-                            punishment = '🚧 恃勢之刑｜人際摩擦與卡頓';
+                        // 1. 自刑: 午見午 (2026是午年，檢測流日地支)
+                        if (dayBranch === '午') {
+                            punishment = '⚠️ 自刑｜內耗與糾結';
                         }
                         // 2. 無恩之刑: 寅、巳、申
                         const ungratefulSet = new Set(['寅', '巳', '申']);
