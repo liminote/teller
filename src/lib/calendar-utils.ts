@@ -50,6 +50,22 @@ export function getCurrentSolarTerm(date: string): string {
 }
 
 /**
+ * 獲取節氣轉換描述
+ * 如果當天是節氣轉換日，返回「由[前一節氣]轉換至[當前節氣]」
+ */
+export function getSolarTermTransition(date: string): string {
+    const mmdd = date.substring(5);
+    const termIndex = SOLAR_TERMS_2026.findIndex(term => term.date === mmdd);
+    if (termIndex === -1) return '';
+
+    const currentTerm = SOLAR_TERMS_2026[termIndex].name;
+    const prevIndex = (termIndex - 1 + 24) % 24;
+    const prevTerm = SOLAR_TERMS_2026[prevIndex].name;
+
+    return `由${prevTerm}轉換至${currentTerm}`;
+}
+
+/**
  * 格式化農曆日期
  * 例如：乙巳十二月初二 -> 十二月初二
  */
@@ -221,6 +237,7 @@ export function generateDailyBasicData(date: string, benmingPalace: string = '�
         紫微流月: getPurpleFlowMonth(date),
         流日命宮地支: flowDayPalace,
         流日四化: fourTrans,
+        節氣轉換: getSolarTermTransition(date),
     };
 }
 

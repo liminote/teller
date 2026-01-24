@@ -181,8 +181,8 @@ export default function Dashboard() {
                             skyAlert = `🌙 農曆換月到${dayInfo.農曆月}月`;
                         }
                         // 節氣轉換
-                        if (dayInfo.節氣) {
-                            skyAlert = (skyAlert ? skyAlert + ' ' : '') + `🌤️ 節氣轉換至${dayInfo.節氣}`;
+                        if (dayInfo.節氣轉換) {
+                            skyAlert = (skyAlert ? skyAlert + ' ' : '') + `🌤️ 節氣${dayInfo.節氣轉換}`;
                         }
 
                         next14Days.push({
@@ -278,6 +278,28 @@ export default function Dashboard() {
                                     </div>
                                 ))}
 
+                                {/* Row 0: Sky Alerts & Punishments (Moved to top) */}
+                                <div className="font-bold text-sm text-stone-500 flex items-center">天象提醒</div>
+                                {forecastDays.map((d, i) => (
+                                    <div key={i} className="flex justify-center items-center py-2 border-b border-stone-100 px-1">
+                                        <div className="flex flex-col gap-1 items-center text-center">
+                                            {d.punishment && (
+                                                <div className="text-[10px] font-black text-[#B25050] bg-[#B25050]/5 px-2 py-1 rounded-md border border-[#B25050]/10 max-w-[120px]">
+                                                    {d.punishment}
+                                                </div>
+                                            )}
+                                            {d.skyAlert && (
+                                                <div className="text-[10px] font-black text-stone-500 bg-stone-100 px-2 py-1 rounded-md border border-stone-200 max-w-[120px]">
+                                                    {d.skyAlert}
+                                                </div>
+                                            )}
+                                            {!d.punishment && !d.skyAlert && (
+                                                <div className="text-[10px] text-stone-200 font-bold italic py-1">一般</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
                                 {/* Row 1: Bazi Pillar */}
                                 <div className="font-bold text-sm text-stone-500 flex items-center">八字</div>
                                 {forecastDays.map((d, i) => {
@@ -323,29 +345,6 @@ export default function Dashboard() {
                                         </div>
                                     );
                                 })}
-
-
-                                {/* Row 4: Sky Alerts & Punishments */}
-                                <div className="font-bold text-sm text-stone-500 flex items-center border-t border-stone-100 mt-2 pt-2">天象提醒</div>
-                                {forecastDays.map((d, i) => (
-                                    <div key={i} className="flex justify-center items-center py-2 border-t border-stone-100 mt-2 pt-2 px-1">
-                                        <div className="flex flex-col gap-1 items-center text-center">
-                                            {d.punishment && (
-                                                <div className="text-[10px] font-black text-[#B25050] bg-[#B25050]/5 px-2 py-1 rounded-md border border-[#B25050]/10 max-w-[120px]">
-                                                    {d.punishment}
-                                                </div>
-                                            )}
-                                            {d.skyAlert && (
-                                                <div className="text-[10px] font-black text-stone-500 bg-stone-100 px-2 py-1 rounded-md border border-stone-200 max-w-[120px]">
-                                                    {d.skyAlert}
-                                                </div>
-                                            )}
-                                            {!d.punishment && !d.skyAlert && (
-                                                <div className="text-[10px] text-stone-200 font-bold italic py-1">一般</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
 
                                 {/* Row 5: Composite Score */}
                                 <div className="font-bold text-xs text-stone-800 flex items-center border-t border-stone-100 mt-2 pt-2">綜合能量</div>
