@@ -164,11 +164,13 @@ export default function Dashboard() {
                         const monthBranch = dayInfo.八字流月.charAt(1);
                         const dayBranch = dayInfo.地支;
 
-                        // 1. 自刑: 午見午 (2026是午年，檢測流日地支)
-                        if (dayBranch === '午') {
+                        // 1. 自刑: 辰、午、酉、亥 (與年或月相同)
+                        const selfPunishmentSet = new Set(['辰', '午', '酉', '亥']);
+                        const yearBranch = '午'; // 2026丙午年
+                        if (selfPunishmentSet.has(dayBranch) && (dayBranch === yearBranch || dayBranch === monthBranch)) {
                             punishment = '⚠️ 自刑｜內耗與糾結';
                         }
-                        // 2. 無恩之刑: 寅、巳、申
+                        // 2. 無恩之刑: 寅、巳、申 (|月+日| 包含兩者且不相等)
                         const ungratefulSet = new Set(['寅', '巳', '申']);
                         if (!punishment && ungratefulSet.has(monthBranch) && ungratefulSet.has(dayBranch) && monthBranch !== dayBranch) {
                             punishment = '⚠️ 無恩之刑｜吃力不討好';
