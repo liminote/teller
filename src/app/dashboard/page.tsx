@@ -143,9 +143,9 @@ export default function Dashboard() {
                 const getProb = (map: Record<string, { r: number; c: number }>, key: string) =>
                     map[key] && map[key].c > 0 ? map[key].r / map[key].c : 0.5;
 
-                const next14Days = [];
+                const forecastDaysData = [];
                 const today = new Date();
-                for (let i = 0; i < 14; i++) {
+                for (let i = 0; i < 60; i++) {
                     const targetDate = new Date(today);
                     targetDate.setDate(today.getDate() + i);
                     const y = targetDate.getFullYear();
@@ -186,7 +186,7 @@ export default function Dashboard() {
                             skyAlert = (skyAlert ? skyAlert + ' ' : '') + `🌤️ 節氣${dayInfo.節氣轉換}`;
                         }
 
-                        next14Days.push({
+                        forecastDaysData.push({
                             ...dayInfo,
                             probP, probG, probS,
                             totalProb: (probP + probG + probS) / 3,
@@ -202,7 +202,7 @@ export default function Dashboard() {
                         });
                     }
                 }
-                setForecastDays(next14Days);
+                setForecastDays(forecastDaysData);
 
             } catch (err: any) {
                 setError(err.message);
@@ -262,14 +262,14 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 gap-10">
 
                     {/* 未來 14 天能量預測矩陣 */}
-                    <section className="bg-white rounded-[32px] p-6 md:p-10 border border-slate-200 shadow-sm">
+                    <section className="bg-white rounded-[32px] p-6 md:p-10 border border-slate-200 shadow-sm overflow-hidden">
                         <div className="mb-8">
-                            <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-1">未來 14 天能量預測</h2>
-                            <p className="text-xs text-stone-400">基於您過往 {data.length} 天的歷史數據所推算的能量趨勢</p>
+                            <h2 className="text-xl font-black tracking-tight text-[#4A4A4A] mb-1">未來 60 天能量預測</h2>
+                            <p className="text-xs text-stone-400">基於您過往 {data.length} 天的歷史數據所推算的能量趨勢 (Scrolling View)</p>
                         </div>
 
-                        <div className="w-full">
-                            <div className="grid grid-cols-[120px_repeat(14,1fr)] gap-y-6">
+                        <div className="w-full overflow-x-auto pb-6 custom-scrollbar">
+                            <div className="grid grid-cols-[120px_repeat(60,110px)] md:grid-cols-[140px_repeat(60,140px)] gap-y-6">
                                 {/* Header: Dates */}
                                 <div className="font-bold text-sm text-stone-400 flex items-end pb-2">日期</div>
                                 {forecastDays.map((d, i) => (
