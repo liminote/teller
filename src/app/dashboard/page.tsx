@@ -145,8 +145,8 @@ export default function Dashboard() {
 
                 const getTenGodForBingFire = (stem: string) => {
                     const map: Record<string, string> = {
-                        '甲': '梟', '乙': '印', '丙': '比', '丁': '劫', '戊': '食',
-                        '己': '傷', '庚': '才', '辛': '財', '壬': '殺', '癸': '官'
+                        '甲': '偏印', '乙': '正印', '丙': '比肩', '丁': '劫財', '戊': '食神',
+                        '己': '傷官', '庚': '偏財', '辛': '正財', '壬': '七殺', '癸': '正官'
                     };
                     return map[stem] || '';
                 };
@@ -334,8 +334,8 @@ export default function Dashboard() {
                                         <div key={i} className="flex justify-center items-center py-2">
                                             <div className={`w-14 h-24 rounded-xl ${border} flex flex-col items-center justify-center shadow-sm transition-transform hover:scale-105 gap-1`}>
                                                 <div className="flex flex-col items-center">
+                                                    <div className="text-[9px] font-bold text-stone-400 mb-0.5">{d.tenGod}</div>
                                                     <div className={`font-black text-2xl chinese-font ${getGanzhiColor(d.天干)}`}>{d.天干}</div>
-                                                    <div className="text-[10px] font-bold text-stone-400 -mt-1">({d.tenGod})</div>
                                                 </div>
                                                 <div className={`text-[9px] font-black leading-tight text-center ${subText}`}>
                                                     <div>{d.流日四化.slice(0, 2)}</div>
