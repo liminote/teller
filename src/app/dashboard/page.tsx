@@ -363,7 +363,7 @@ export default function Dashboard() {
                                 {/* Row 1: Bazi Pillar */}
                                 <div className="font-bold text-sm text-stone-500 flex items-center">八字</div>
                                 {forecastDays.map((d, i) => {
-                                    const border = d.isBestBazi ? 'border-2 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstBazi ? 'border-2 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
+                                    const border = d.isBestBazi ? 'border-4 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstBazi ? 'border-4 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2">
                                             <div className={`w-12 h-12 rounded-xl ${border} flex items-center justify-center font-black text-lg chinese-font shadow-sm transition-transform hover:scale-105`}>
@@ -377,7 +377,7 @@ export default function Dashboard() {
                                 {/* Row 2: Heavenly Stem & Ziwei Stars (Combined) */}
                                 <div className="font-bold text-sm text-stone-500 flex items-center">天干 / 四化</div>
                                 {forecastDays.map((d, i) => {
-                                    const border = d.isBestStem ? 'border-2 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstStem ? 'border-2 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
+                                    const border = d.isBestStem ? 'border-4 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstStem ? 'border-4 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
                                     const subText = 'text-stone-400';
 
                                     return (
@@ -399,7 +399,7 @@ export default function Dashboard() {
                                 {/* Row 3: Earthly Branch (Palace) */}
                                 <div className="font-bold text-sm text-stone-500 flex items-center">流日命宮地支</div>
                                 {forecastDays.map((d, i) => {
-                                    const border = d.isBestPalace ? 'border-2 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstPalace ? 'border-2 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
+                                    const border = d.isBestPalace ? 'border-4 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstPalace ? 'border-4 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
                                     return (
                                         <div key={i} className="flex justify-center items-center py-2">
                                             <div className={`w-12 h-12 rounded-xl ${border} flex items-center justify-center font-black text-lg chinese-font shadow-sm transition-transform hover:scale-105`}>
