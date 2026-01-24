@@ -9,6 +9,7 @@ import { Loader2, TrendingUp, Filter, AlertCircle, Info } from 'lucide-react';
 import { getGanzhiColor } from '@/lib/ganzhi-colors';
 
 import { generateDailyBasicData } from '@/lib/calendar-utils';
+import calendarData2025 from '@/data/calendar-2025.json';
 
 export default function Dashboard() {
     const [data, setData] = useState<any[]>([]);
@@ -140,10 +141,19 @@ export default function Dashboard() {
                     if (g) { if (!gMap[g]) gMap[g] = { r: 0, c: 0 }; gMap[g].r += isGood; gMap[g].c++; }
                     if (s) { if (!sMap[s]) sMap[s] = { r: 0, c: 0 }; sMap[s].r += isGood; sMap[s].c++; }
                 });
+
+                const getTenGodForBingFire = (stem: string) => {
+                    const map: Record<string, string> = {
+                        '甲': '偏印', '乙': '正印', '丙': '比肩', '丁': '劫財', '戊': '食神',
+                        '己': '傷官', '庚': '偏財', '辛': '正財', '壬': '七殺', '癸': '正官'
+                    };
+                    return map[stem] || '';
+                };
+
                 const getProb = (map: Record<string, { r: number; c: number }>, key: string) =>
                     map[key] && map[key].c > 0 ? map[key].r / map[key].c : 0.5;
 
-                // --- 歷史感應引擎 (Sentiment Knowledge Engine) ---
+                // --- 動態歷史感應引擎 (Dynamic Sentiment Engine) ---
                 const sentimentKnowledge: Record<string, Set<string>> = {
                     '七殺': new Set(['壓力', '挑戰', '主管', '口舌']),
                     '傷官': new Set(['點子', '抒發', '糾結', '說話']),
@@ -153,17 +163,29 @@ export default function Dashboard() {
                     '申': new Set(['煩人', '糾結'])
                 };
 
-                // 動態從 Sheets 紀錄中更新關鍵字 (簡化版邏輯)
-                // 在實際運作中，這可以更複雜，目前我們先用這份精確回測後的字典
+                const SENTINEL_KEYWORDS = ['煩', '累', '壓力', '糾結', '順', '開心', '難', '卡', '衝突', '想太多', '精氣神'];
 
+                // 掃描歷史數據進行機器學習
+                data.forEach(row => {
+                    const dateStr = row.日期;
+                    const note = (row.備註 || '') + (row.紫微_四化簡述 || '') + (row.八字_體感 || '');
+                    if (!note || !dateStr) return;
 
-                const getTenGodForBingFire = (stem: string) => {
-                    const map: Record<string, string> = {
-                        '甲': '偏印', '乙': '正印', '丙': '比肩', '丁': '劫財', '戊': '食神',
-                        '己': '傷官', '庚': '偏財', '辛': '正財', '壬': '七殺', '癸': '正官'
-                    };
-                    return map[stem] || '';
-                };
+                    const cal = (calendarData2025 as any[]).find((c: any) => c.gregorianDate === dateStr);
+                    if (!cal) return;
+
+                    const tg = getTenGodForBingFire(cal.dayPillar.charAt(0));
+                    const branch = cal.dayPillar.charAt(1);
+
+                    SENTINEL_KEYWORDS.forEach(kw => {
+                        if (note.includes(kw)) {
+                            if (!sentimentKnowledge[tg]) sentimentKnowledge[tg] = new Set();
+                            if (!sentimentKnowledge[branch]) sentimentKnowledge[branch] = new Set();
+                            sentimentKnowledge[tg].add(kw);
+                            sentimentKnowledge[branch].add(kw);
+                        }
+                    });
+                });
 
                 const getVibe = (tg: string, branch: string) => {
                     const vibes = new Set<string>();
