@@ -349,8 +349,8 @@ export default function Dashboard() {
                                                 </div>
                                             )}
                                             {d.historicalVibe && (
-                                                <div className="text-[9px] text-[#B25050]/70 font-bold">
-                                                    💡 歷感：{d.historicalVibe}
+                                                <div className="text-[11px] text-[#B25050]/70 font-bold">
+                                                    💡 {d.historicalVibe}
                                                 </div>
                                             )}
                                             {!d.punishment && !d.skyAlert && !d.historicalVibe && (
