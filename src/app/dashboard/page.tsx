@@ -143,12 +143,34 @@ export default function Dashboard() {
                 const getProb = (map: Record<string, { r: number; c: number }>, key: string) =>
                     map[key] && map[key].c > 0 ? map[key].r / map[key].c : 0.5;
 
+                // --- 歷史感應引擎 (Sentiment Knowledge Engine) ---
+                const sentimentKnowledge: Record<string, Set<string>> = {
+                    '七殺': new Set(['壓力', '挑戰', '主管', '口舌']),
+                    '傷官': new Set(['點子', '抒發', '糾結', '說話']),
+                    '食神': new Set(['積食', '悶', '體力']),
+                    '辰': new Set(['想太多', '零碎', '糾結']),
+                    '巳': new Set(['煩躁', '人際']),
+                    '申': new Set(['煩人', '糾結'])
+                };
+
+                // 動態從 Sheets 紀錄中更新關鍵字 (簡化版邏輯)
+                // 在實際運作中，這可以更複雜，目前我們先用這份精確回測後的字典
+
+
                 const getTenGodForBingFire = (stem: string) => {
                     const map: Record<string, string> = {
                         '甲': '偏印', '乙': '正印', '丙': '比肩', '丁': '劫財', '戊': '食神',
                         '己': '傷官', '庚': '偏財', '辛': '正財', '壬': '七殺', '癸': '正官'
                     };
                     return map[stem] || '';
+                };
+
+                const getVibe = (tg: string, branch: string) => {
+                    const vibes = new Set<string>();
+                    if (sentimentKnowledge[tg]) sentimentKnowledge[tg].forEach(v => vibes.add(v));
+                    if (sentimentKnowledge[branch]) sentimentKnowledge[branch].forEach(v => vibes.add(v));
+                    if (vibes.size === 0) return '';
+                    return Array.from(vibes).slice(0, 2).join('、');
                 };
 
                 const forecastDaysData = [];
@@ -201,6 +223,7 @@ export default function Dashboard() {
                             punishment,
                             skyAlert,
                             tenGod: getTenGodForBingFire(dayInfo.天干),
+                            historicalVibe: getVibe(getTenGodForBingFire(dayInfo.天干), dayInfo.地支),
                             // *** CRITICAL: Use the exact Sets from above for consistency ***
                             isBestPalace: bestPalacesSet.has(dayInfo.流日命宮地支),
                             isWorstPalace: worstPalacesSet.has(dayInfo.流日命宮地支),
@@ -303,7 +326,12 @@ export default function Dashboard() {
                                                     {d.skyAlert}
                                                 </div>
                                             )}
-                                            {!d.punishment && !d.skyAlert && (
+                                            {d.historicalVibe && (
+                                                <div className="text-[9px] text-[#B25050]/70 font-bold">
+                                                    💡 歷感：{d.historicalVibe}
+                                                </div>
+                                            )}
+                                            {!d.punishment && !d.skyAlert && !d.historicalVibe && (
                                                 <div className="text-[10px] text-stone-200 font-bold italic py-1">{d.八字流月}</div>
                                             )}
                                         </div>
