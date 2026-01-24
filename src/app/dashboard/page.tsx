@@ -295,7 +295,7 @@ export default function Dashboard() {
                                                 </div>
                                             )}
                                             {!d.punishment && !d.skyAlert && (
-                                                <div className="text-[10px] text-stone-200 font-bold italic py-1">一般</div>
+                                                <div className="text-[10px] text-stone-200 font-bold italic py-1">{d.八字流月}</div>
                                             )}
                                         </div>
                                     </div>
