@@ -159,10 +159,38 @@ export default function Dashboard() {
                         const probG = getProb(gMap, `${dayInfo.天干}${dayInfo.地支}`);
                         const probS = getProb(sMap, dayInfo.天干);
 
+                        // --- 刑剋檢測與天象提醒 ---
+                        let punishment = '';
+                        const monthBranch = dayInfo.八字流月.charAt(1);
+                        const dayBranch = dayInfo.地支;
+
+                        // 1. 恃勢之刑: 丑、戌、未
+                        const bullyingSet = new Set(['丑', '戌', '未']);
+                        if (bullyingSet.has(monthBranch) && bullyingSet.has(dayBranch) && monthBranch !== dayBranch) {
+                            punishment = '🚧 恃勢之刑｜人際摩擦與卡頓';
+                        }
+                        // 2. 無恩之刑: 寅、巳、申
+                        const ungratefulSet = new Set(['寅', '巳', '申']);
+                        if (!punishment && ungratefulSet.has(monthBranch) && ungratefulSet.has(dayBranch) && monthBranch !== dayBranch) {
+                            punishment = '⚠️ 無恩之刑｜吃力不討好';
+                        }
+
+                        let skyAlert = '';
+                        // 農曆換月: 農曆日為 1
+                        if (dayInfo.農曆日 === '1') {
+                            skyAlert = `🌙 農曆換月到${dayInfo.農曆月}月`;
+                        }
+                        // 節氣轉換
+                        if (dayInfo.節氣) {
+                            skyAlert = (skyAlert ? skyAlert + ' ' : '') + `🌤️ 節氣轉換至${dayInfo.節氣}`;
+                        }
+
                         next14Days.push({
                             ...dayInfo,
                             probP, probG, probS,
                             totalProb: (probP + probG + probS) / 3,
+                            punishment,
+                            skyAlert,
                             // *** CRITICAL: Use the exact Sets from above for consistency ***
                             isBestPalace: bestPalacesSet.has(dayInfo.流日命宮地支),
                             isWorstPalace: worstPalacesSet.has(dayInfo.流日命宮地支),
@@ -297,8 +325,29 @@ export default function Dashboard() {
                                 })}
 
 
+                                {/* Row 4: Sky Alerts & Punishments */}
+                                <div className="font-bold text-sm text-stone-500 flex items-center border-t border-stone-100 mt-2 pt-2">天象提醒</div>
+                                {forecastDays.map((d, i) => (
+                                    <div key={i} className="flex justify-center items-center py-2 border-t border-stone-100 mt-2 pt-2 px-1">
+                                        <div className="flex flex-col gap-1 items-center text-center">
+                                            {d.punishment && (
+                                                <div className="text-[10px] font-black text-[#B25050] bg-[#B25050]/5 px-2 py-1 rounded-md border border-[#B25050]/10 max-w-[120px]">
+                                                    {d.punishment}
+                                                </div>
+                                            )}
+                                            {d.skyAlert && (
+                                                <div className="text-[10px] font-black text-stone-500 bg-stone-100 px-2 py-1 rounded-md border border-stone-200 max-w-[120px]">
+                                                    {d.skyAlert}
+                                                </div>
+                                            )}
+                                            {!d.punishment && !d.skyAlert && (
+                                                <div className="text-[10px] text-stone-200 font-bold italic py-1">一般</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
 
-                                {/* Row 4: Composite Score */}
+                                {/* Row 5: Composite Score */}
                                 <div className="font-bold text-xs text-stone-800 flex items-center border-t border-stone-100 mt-2 pt-2">綜合能量</div>
 
                                 {(() => {
