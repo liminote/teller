@@ -255,6 +255,18 @@ export default function Dashboard() {
                             skyAlert = (skyAlert ? skyAlert + ' ' : '') + `🌤️ 節氣${dayInfo.節氣轉換}`;
                         }
 
+                        // 4. 歷史好運模式 (Historical Success Patterns)
+                        const successPillars = new Set(['甲辰', '丁卯', '壬寅', '壬子', '丙辰']);
+                        const currentPillar = `${dayInfo.天干}${dayInfo.地支}`;
+
+                        if (dayInfo.天干 === '壬') {
+                            skyAlert = (skyAlert ? skyAlert + ' ' : '') + '🌟 歷史精進｜遇挑戰則強';
+                        } else if (dayInfo.天干 === '辛') {
+                            skyAlert = (skyAlert ? skyAlert + ' ' : '') + '✨ 歷史契合｜職場掌控力強';
+                        } else if (successPillars.has(currentPillar)) {
+                            skyAlert = (skyAlert ? skyAlert + ' ' : '') + '✨ 歷史契合｜穩定的成就感';
+                        }
+
                         forecastDaysData.push({
                             ...dayInfo,
                             probP, probG, probS,
