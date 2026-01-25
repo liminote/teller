@@ -218,7 +218,9 @@ export default function Dashboard() {
 
                         // 1. 自刑: 辰、午、酉、亥 (與年或月相同)
                         const selfPunishmentSet = new Set(['辰', '午', '酉', '亥']);
-                        const yearBranch = '午'; // 2026丙午年
+                        // 立春切換太歲: 2026-02-04
+                        const liChunDate = new Date('2026-02-04');
+                        const yearBranch = targetDate < liChunDate ? '巳' : '午';
                         if (selfPunishmentSet.has(dayBranch) && (dayBranch === yearBranch || dayBranch === monthBranch)) {
                             punishment = '⚠️ 自刑｜內耗與糾結';
                         }
@@ -229,6 +231,21 @@ export default function Dashboard() {
                         }
 
                         let skyAlert = '';
+
+                        // 3. 三合 (Triple Combination): 申子辰, 亥卯未, 寅午戌, 巳酉丑
+                        const tripleSets = [
+                            new Set(['申', '子', '辰']),
+                            new Set(['亥', '卯', '未']),
+                            new Set(['寅', '午', '戌']),
+                            new Set(['巳', '酉', '丑'])
+                        ];
+                        const isTriple = tripleSets.some(set =>
+                            set.has(dayBranch) && (set.has(yearBranch) || set.has(monthBranch)) && (dayBranch !== yearBranch && dayBranch !== monthBranch)
+                        );
+                        if (isTriple) {
+                            skyAlert = '🌪️ 三合｜動能強、成事之勢';
+                        }
+
                         // 農曆換月: 農曆日為 1
                         if (dayInfo.農曆日 === '1') {
                             skyAlert = `🌙 農曆換月到${dayInfo.農曆月}月`;
