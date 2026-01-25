@@ -394,7 +394,7 @@ export default function Dashboard() {
                                 {/* Row 2: Heavenly Stem & Ziwei Stars (Combined) */}
                                 <div className="font-bold text-sm text-stone-500 flex items-center">天干 / 四化</div>
                                 {forecastDays.map((d, i) => {
-                                    const border = d.isBestStem ? 'border-4 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstStem ? 'border-4 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
+                                    const border = d.天干 === '壬' ? 'border-4 border-[#8294A5] bg-[#8294A5]/10' : d.isBestStem ? 'border-4 border-[#8EA68F] bg-[#8EA68F]/5' : d.isWorstStem ? 'border-4 border-[#B88A8A] bg-[#B88A8A]/5' : 'bg-stone-100 border border-stone-100';
                                     const subText = 'text-stone-400';
 
                                     return (
