@@ -163,7 +163,7 @@ export default function Dashboard() {
                     '申': new Set(['煩人', '糾結'])
                 };
 
-                const SENTINEL_KEYWORDS = ['煩', '累', '壓力', '糾結', '順', '開心', '難', '卡', '衝突', '想太多', '精氣神'];
+                const SENTINEL_KEYWORDS = ['煩', '累', '壓力', '糾結', '順', '開心', '難', '卡', '衝突', '想太多', '精氣神', '順心', '效率', '穩定', '成就感', '突破'];
 
                 // 掃描歷史數據進行機器學習
                 data.forEach(row => {
@@ -179,6 +179,7 @@ export default function Dashboard() {
 
                     SENTINEL_KEYWORDS.forEach(kw => {
                         if (note.includes(kw)) {
+                            // 同時記錄在「十神」與「坐支」下，增加感應靈敏度
                             if (!sentimentKnowledge[tg]) sentimentKnowledge[tg] = new Set();
                             if (!sentimentKnowledge[branch]) sentimentKnowledge[branch] = new Set();
                             sentimentKnowledge[tg].add(kw);
@@ -378,7 +379,7 @@ export default function Dashboard() {
                                                 </div>
                                             )}
                                             {d.historicalVibe && (
-                                                <div className="text-[11px] text-[#B25050]/70 font-bold">
+                                                <div className="text-[11px] text-[#507AB2]/80 font-bold">
                                                     💡 {d.historicalVibe}
                                                 </div>
                                             )}
