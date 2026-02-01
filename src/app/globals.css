@@ -2,9 +2,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #E5E2DB;
-  --foreground: #4A4A4A;
-  --border: rgba(130, 148, 165, 0.1);
+  /* VDS v1.0 */
+  --background: #F2F4F5;
+  --foreground: #4A5568;
+  --border: rgba(74, 100, 115, 0.1);
   --card-bg: #FFFFFF;
 }
 
