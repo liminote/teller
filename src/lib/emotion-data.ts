@@ -46,6 +46,7 @@ export const EMOTIONS: Emotion[] = [
     { chinese: '被逼迫的', english: 'Coerced', quadrant: 'red', energy: 'high', pleasantness: 'low' },
     { chinese: '戰鬥狀態的', english: 'In Battle Mode', quadrant: 'red', energy: 'high', pleasantness: 'low' },
     { chinese: '急躁的', english: 'Impatient', quadrant: 'red', energy: 'high', pleasantness: 'low' },
+    { chinese: '不耐煩的', english: 'Impatient (Irritated)', quadrant: 'red', energy: 'high', pleasantness: 'low' },
     { chinese: '煩躁的', english: 'Irritable', quadrant: 'red', energy: 'high', pleasantness: 'low' },
     { chinese: '身體緊繃的', english: 'Physically Tense', quadrant: 'red', energy: 'high', pleasantness: 'low' },
     { chinese: '浮躁的', english: 'Impetuous', quadrant: 'red', energy: 'high', pleasantness: 'low' },
@@ -121,6 +122,9 @@ export const EMOTIONS: Emotion[] = [
     { chinese: '麻木的', english: 'Numb', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
     { chinese: '燃燒殆盡的', english: 'Burned Out', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
     { chinese: '卡關的', english: 'Stuck', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '悶悶的', english: 'Gloomy', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '分心的', english: 'Distracted', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
+    { chinese: '耐著性子的', english: 'Patiently (Enduring)', quadrant: 'blue', energy: 'low', pleasantness: 'low' },
 
     // 🟢 綠色區（低能量 + 高愉悅）
     { chinese: '自在的', english: 'At Ease', quadrant: 'green', energy: 'low', pleasantness: 'high' },
@@ -156,6 +160,7 @@ export const EMOTIONS: Emotion[] = [
     { chinese: '安定的', english: 'Stable', quadrant: 'green', energy: 'low', pleasantness: 'high' },
     { chinese: '有順序的', english: 'Ordered', quadrant: 'green', energy: 'low', pleasantness: 'high' },
     { chinese: '安靜的', english: 'Quiet', quadrant: 'green', energy: 'low', pleasantness: 'high' },
+    { chinese: '滿足的', english: 'Satisfied', quadrant: 'green', energy: 'low', pleasantness: 'high' },
 ];
 
 // 根據象限獲取顏色
