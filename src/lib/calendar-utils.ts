@@ -1,52 +1,80 @@
 /**
- * 農曆與八字計算工具函數
+ * 農曆與八字計算工具函數 (自動化版本)
+ * 使用 lunar-javascript 進行動態計算，不再依賴靜態 JSON
  */
 
-import calendarData2025 from '../data/calendar-2025.json';
-import calendarData2026 from '../data/calendar-2026.json';
-import { SOLAR_TERMS_2026, FOUR_TRANSFORMATIONS, type DailyCalendarData } from './calendar-data';
+import { Solar } from 'lunar-javascript';
+import { FOUR_TRANSFORMATIONS, type DailyCalendarData } from './calendar-data';
+import { calculateFlowMonthPalace, calculateFlowDayPalace } from './purple-palace-calculator';
 
 /**
- * 根據西元日期查詢農曆與干支資料
+ * 根據西元日期計算農曆與干支資料
+ * 使用 lunar-javascript 庫
  */
 export function getDailyCalendar(date: string): DailyCalendarData | null {
-    const year = parseInt(date.substring(0, 4));
-    const calendarData = year === 2025 ? calendarData2025 : calendarData2026;
+    try {
+        const [y, m, d] = date.split('-').map(Number);
+        const solar = Solar.fromYmd(y, m, d);
+        const lunar = solar.getLunar();
 
-    const data = calendarData.find((d: any) => d.gregorianDate === date);
-    if (!data) return null;
+        // 檢查當天是否有節氣
+        const jieQi = lunar.getJieQi();
+        const zhongQi = lunar.getZhongQi();
+        const solarTermName = jieQi || zhongQi || undefined;
 
-    // 查詢當天是否有節氣
-    const mmdd = date.substring(5); // 取得 MM-DD
-    const solarTerm = SOLAR_TERMS_2026.find(term => term.date === mmdd);
+        let solarTermTime = undefined;
+        if (solarTermName) {
+            // 獲取節氣精確時間
+            const solarTerms = solar.getYear().getSolarTerms();
+            const term = solarTerms.find((t: any) => t.getName() === solarTermName);
+            if (term) {
+                const time = term.getJulianDay().getSolar().toYmdHms().split(' ')[1];
+                solarTermTime = time.substring(0, 5); // HH:mm
+            }
+        }
 
-    return {
-        ...data,
-        solarTerm: solarTerm?.name,
-        solarTermTime: solarTerm?.time,
-    };
+        // 重要修正：使用按「立春」切換的年柱，以及按「節氣」切換的月柱
+        return {
+            gregorianDate: date,
+            lunarDate: `${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`,
+            yearPillar: `${lunar.getYearInGanZhiByLiChun()}年`,
+            monthPillar: `${lunar.getMonthInGanZhiExact()}月`,
+            dayPillar: `${lunar.getDayInGanZhi()}日`,
+            solarTerm: solarTermName,
+            solarTermTime: solarTermTime,
+        };
+    } catch (e) {
+        console.error('getDailyCalendar 錯誤:', e);
+        return null;
+    }
 }
 
 /**
  * 獲取當前節氣
- * 找到最接近但不晚於當前日期的節氣
+ * 找到當前日期所處的節氣（最近的一個節氣，不晚於當前日期）
  */
 export function getCurrentSolarTerm(date: string): string {
-    const targetDate = new Date(date);
-    const year = targetDate.getFullYear();
+    try {
+        const [y, m, d] = date.split('-').map(Number);
+        const solar = Solar.fromYmd(y, m, d);
+        const lunar = solar.getLunar();
 
-    let currentTerm = '';
+        // 獲取最近的一個節氣（JieQi）或中氣（ZhongQi）
+        const prevJie = lunar.getPrevJie();
+        const prevZhong = lunar.getPrevZhong();
 
-    for (const term of SOLAR_TERMS_2026) {
-        const termDate = new Date(`${year}-${term.date}`);
-        if (termDate <= targetDate) {
-            currentTerm = term.name;
+        // 比較誰更接近當前日期
+        const prevJieSolar = prevJie.getSolar();
+        const prevZhongSolar = prevZhong.getSolar();
+
+        if (prevJieSolar.toYmd() >= prevZhongSolar.toYmd()) {
+            return prevJie.getName();
         } else {
-            break;
+            return prevZhong.getName();
         }
+    } catch (e) {
+        return '小寒';
     }
-
-    return currentTerm || '小寒'; // 預設返回小寒
 }
 
 /**
@@ -54,29 +82,42 @@ export function getCurrentSolarTerm(date: string): string {
  * 如果當天是節氣轉換日，返回「由[前一節氣]轉換至[當前節氣]」
  */
 export function getSolarTermTransition(date: string): string {
-    const mmdd = date.substring(5);
-    const termIndex = SOLAR_TERMS_2026.findIndex(term => term.date === mmdd);
-    if (termIndex === -1) return '';
+    try {
+        const [y, m, d] = date.split('-').map(Number);
+        const solar = Solar.fromYmd(y, m, d);
+        const lunar = solar.getLunar();
 
-    const currentTerm = SOLAR_TERMS_2026[termIndex].name;
-    const prevIndex = (termIndex - 1 + 24) % 24;
-    const prevTerm = SOLAR_TERMS_2026[prevIndex].name;
+        const currentTerm = lunar.getJieQi() || lunar.getZhongQi();
+        if (!currentTerm) return '';
 
-    return `由${prevTerm}轉換至${currentTerm}`;
+        const prevJie = lunar.getPrevJie();
+        const prevZhong = lunar.getPrevZhong();
+
+        // 找到上一個節氣
+        let prevTerm = '';
+        if (prevJie.getName() === currentTerm) {
+            // 如果當前是節氣，前一個可能是上一個中氣
+            prevTerm = prevZhong.getName();
+        } else {
+            prevTerm = prevJie.getName();
+        }
+
+        return `由${prevTerm}轉換至${currentTerm}`;
+    } catch (e) {
+        return '';
+    }
 }
 
 /**
  * 格式化農曆日期
- * 例如：乙巳十二月初二 -> 十二月初二
+ * 直接返回農曆月日
  */
 export function formatLunarDate(lunarDate: string): string {
-    // 移除年份部分，只保留月和日
-    return lunarDate.substring(2); // 直接從第3個字開始
+    return lunarDate; // 在自動化版本中已經是格式化好的「十二月初二」
 }
 
 /**
  * 獲取八字流年
- * 注意：立春前仍算前一年
  */
 export function getYearPillar(date: string): string {
     const data = getDailyCalendar(date);
@@ -131,91 +172,81 @@ const STAR_ABBREVIATIONS: Record<string, string> = {
     '文昌': '昌',
     '巨門': '巨',
     '貪狼': '貪',
-    '右弼': '右',  // 修正：右弼縮寫為「右」
+    '右弼': '右',
     '文曲': '曲',
     '左輔': '左',
 };
 
 /**
  * 獲取紫微流日四化
- * 根據日天干查詢
  */
 export function getDailyFourTransformations(date: string): string {
     const dayStem = getDayStem(date);
     const trans = FOUR_TRANSFORMATIONS[dayStem];
     if (!trans) return '';
 
-    // 使用星曜縮寫對照表
     const luAbbr = STAR_ABBREVIATIONS[trans.祿] || trans.祿;
     const quanAbbr = STAR_ABBREVIATIONS[trans.權] || trans.權;
     const keAbbr = STAR_ABBREVIATIONS[trans.科] || trans.科;
     const jiAbbr = STAR_ABBREVIATIONS[trans.忌] || trans.忌;
 
-    // 返回縮寫形式，例如：廉破武陽
     return `${luAbbr}${quanAbbr}${keAbbr}${jiAbbr}`;
 }
 
+
 /**
- * 獲取紫微流月（農曆月份）
+ * 獲取紫微流月（農曆月份名稱）
  */
 export function getPurpleFlowMonth(date: string): string {
-    const data = getDailyCalendar(date);
-    if (!data) return '';
+    try {
+        const [y, m, d] = date.split('-').map(Number);
+        const solar = Solar.fromYmd(y, m, d);
+        const lunar = solar.getLunar();
 
-    // 從農曆日期中提取月份
-    // 例如：乙巳十二月初二 -> 臘月
-    const lunarDate = data.lunarDate;
-
-    // 先檢查長字串（十二月、十一月、十月），再檢查短字串
-    const monthMap: Record<string, string> = {
-        '十二月': '臘月',
-        '十一月': '冬月',
-        '十月': '十月',
-        '正月': '正月',
-        '二月': '二月',
-        '三月': '三月',
-        '四月': '四月',
-        '五月': '五月',
-        '六月': '六月',
-        '七月': '七月',
-        '八月': '八月',
-        '九月': '九月',
-    };
-
-    for (const [key, value] of Object.entries(monthMap)) {
-        if (lunarDate.includes(key)) {
-            return value;
-        }
+        const month = Math.abs(lunar.getMonth());
+        const monthMap: Record<number, string> = {
+            1: '正月', 2: '二月', 3: '三月', 4: '四月', 5: '五月', 6: '六月',
+            7: '七月', 8: '八月', 9: '九月', 10: '十月', 11: '冬月', 12: '臘月'
+        };
+        return monthMap[month] || '';
+    } catch (e) {
+        return '';
     }
-
-    return '';
 }
 
 /**
  * 生成完整的「每日基本資料」
- * 這個函數會生成所有需要的資訊，供Google Sheets使用
- * 
- * @param date - 西元日期 YYYY-MM-DD
- * @param benmingPalace - 本命命宮地支（例如：'戌'）
  */
-export function generateDailyBasicData(date: string, benmingPalace: string = '戌') {
+export function generateDailyBasicData(date: string, benmingPalace: string = '巳') {
     const calendar = getDailyCalendar(date);
     if (!calendar) return null;
 
     const dayStem = getDayStem(date);
     const fourTrans = getDailyFourTransformations(date);
 
-    // 計算紫微流日命宮、農曆月、農曆日
+    // 計算紫微流日命宮
     let flowDayPalace = '';
-    let lunarMonth = '';
-    let lunarDay = '';
+    let lunarMonthStr = '';
+    let lunarDayStr = '';
     try {
-        const { calculateFlowDayPalaceFromLunarDate, extractLunarMonth, extractLunarDay } = require('./purple-palace-calculator');
-        flowDayPalace = calculateFlowDayPalaceFromLunarDate(benmingPalace, calendar.lunarDate);
-        lunarMonth = extractLunarMonth(calendar.lunarDate).toString();
-        lunarDay = extractLunarDay(calendar.lunarDate).toString();
+        const [y, m, d] = date.split('-').map(Number);
+        const solar = Solar.fromYmd(y, m, d);
+        const lunar = solar.getLunar();
+
+        const lunarMonth = Math.abs(lunar.getMonth());
+        const lunarDay = lunar.getDay();
+        const yearBranch = lunar.getYearZhi();
+
+        // 1. 流年命宮以該年地支為準 (user 之前的修正邏輯)
+        // 2. 計算流月命宮
+        const flowMonthPalace = calculateFlowMonthPalace(yearBranch, lunarMonth);
+        // 3. 計算流日命宮
+        flowDayPalace = calculateFlowDayPalace(flowMonthPalace, lunarDay);
+
+        lunarMonthStr = lunarMonth.toString();
+        lunarDayStr = lunarDay.toString();
     } catch (error) {
-        console.error('紫微流日命宮計算失敗:', error);
+        console.error('紫微計算失敗:', error);
     }
 
     const dayOfWeek = new Date(date).getDay();
@@ -225,15 +256,15 @@ export function generateDailyBasicData(date: string, benmingPalace: string = '�
     return {
         日期: date,
         星期: weekday,
-        農曆: formatLunarDate(calendar.lunarDate),
-        農曆月: lunarMonth,
-        農曆日: lunarDay,
+        農曆: calendar.lunarDate,
+        農曆月: lunarMonthStr,
+        農曆日: lunarDayStr,
         天干: dayStem,
         地支: getDayBranch(date),
-        月天干地支: calendar.monthPillar,
+        月天干地支: calendar.monthPillar.replace('月', ''),
         節氣: getCurrentSolarTerm(date),
-        八字流年: calendar.yearPillar,
-        八字流月: calendar.monthPillar,
+        八字流年: calendar.yearPillar.replace('年', ''),
+        八字流月: calendar.monthPillar.replace('月', ''),
         紫微流月: getPurpleFlowMonth(date),
         流日命宮地支: flowDayPalace,
         流日四化: fourTrans,
@@ -242,31 +273,20 @@ export function generateDailyBasicData(date: string, benmingPalace: string = '�
 }
 
 /**
- * 批量生成一年份的每日基本資料
- * 
- * @param year - 年份
- * @param benmingPalace - 本命命宮地支
+ * 批量生成指定年份的每日基本資料
  */
 export function generateYearlyBasicData(year: number = 2026, benmingPalace: string = '戌') {
-    // 動態導入對應年份的資料
-    let calendarData: any[];
-    if (year === 2025) {
-        calendarData = require('../data/calendar-2025.json');
-    } else if (year === 2026) {
-        calendarData = require('../data/calendar-2026.json');
-    } else {
-        throw new Error(`不支援的年份：${year}`);
-    }
-
     const results = [];
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
 
-    for (const data of calendarData) {
-        const basicData = generateDailyBasicData(data.gregorianDate, benmingPalace);
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const basicData = generateDailyBasicData(dateStr, benmingPalace);
         if (basicData) {
             results.push(basicData);
         }
     }
-
     return results;
 }
 
@@ -282,8 +302,8 @@ export function getElementColor(char: string): string {
 
     if (wood.includes(char)) return 'text-emerald-500';
     if (fire.includes(char)) return 'text-rose-500';
-    if (earth.includes(char)) return 'text-amber-700'; // 褐色/深琥珀色
-    if (metal.includes(char)) return 'text-yellow-500'; // 金色/黃色
+    if (earth.includes(char)) return 'text-amber-700';
+    if (metal.includes(char)) return 'text-yellow-500';
     if (water.includes(char)) return 'text-blue-500';
 
     return 'text-slate-400';
