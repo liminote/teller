@@ -40,7 +40,7 @@ async function generateReport() {
 
     const dateToPillar = new Map<string, string>();
     const validDates = new Set<string>();
-    
+
     calendarData.forEach((entry: any) => {
         if (entry.gregorianDate && entry.dayPillar) {
             dateToPillar.set(entry.gregorianDate, entry.dayPillar);
@@ -52,7 +52,7 @@ async function generateReport() {
     const branchStats: Record<string, DayStats> = {};
     const stemStats: Record<string, DayStats> = {};
     const pillarStats: Record<string, DayStats> = {};
-    
+
     BRANCHES.forEach(b => branchStats[b] = { total: 0, positiveCount: 0, negativeCount: 0, keywords: {} });
     STEMS.forEach(s => stemStats[s] = { total: 0, positiveCount: 0, negativeCount: 0, keywords: {} });
 
@@ -68,7 +68,7 @@ async function generateReport() {
     for (const file of files) {
         if (!file.endsWith('.md')) continue;
         const dateStr = file.replace('.md', '');
-        
+
         // Only process if we have calendar data for this date
         if (!dateToPillar.has(dateStr)) continue;
 
@@ -78,7 +78,7 @@ async function generateReport() {
 
         // Read Content
         const content = fs.readFileSync(path.join(journalPath, file), 'utf8');
-        
+
         // Count keywords
         let dailyPos = 0;
         let dailyNeg = 0;
@@ -109,7 +109,7 @@ async function generateReport() {
 
         // Initialize pillar stats if needed
         if (!pillarStats[dayPillar]) {
-             pillarStats[dayPillar] = { total: 0, positiveCount: 0, negativeCount: 0, keywords: {} };
+            pillarStats[dayPillar] = { total: 0, positiveCount: 0, negativeCount: 0, keywords: {} };
         }
 
         updateStats(branchStats[branch]);
@@ -126,20 +126,20 @@ async function generateReport() {
 
     md += `## 1. 地支分析 (Earthly Branches Analysis)\n`;
     md += `Here we analyze how your days went based on the Earthly Branch of the day (e.g., Rat, Ox, Tiger...).\n\n`;
-    
+
     md += `| Branch | Name | Days Logged | Positivity Score | Top Keywords |\n`;
     md += `|---|---|---|---|---|\n`;
 
     BRANCHES.forEach(branch => {
         const s = branchStats[branch];
         if (s.total === 0) return;
-        
+
         // Simple "Positivity Score": (Pos - Neg) / Total. Or just show raw counts.
         // Let's do a ratio: Pos / (Pos + Neg)
         const totalKeywords = s.positiveCount + s.negativeCount;
         const ratio = totalKeywords > 0 ? (s.positiveCount / totalKeywords * 100).toFixed(0) + '%' : 'N/A';
         const netScore = (s.positiveCount - s.negativeCount) / s.total; // Net per day
-        
+
         const topKw = Object.entries(s.keywords)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 3)
@@ -155,14 +155,14 @@ async function generateReport() {
         if (s.total === 0) return;
         const totalKeywords = s.positiveCount + s.negativeCount;
         const posRatio = totalKeywords > 0 ? s.positiveCount / totalKeywords : 0;
-        
+
         let sentiment = "Neutral";
         if (posRatio > 0.6) sentiment = "Mostly Positive";
         if (posRatio < 0.4 && totalKeywords > 0) sentiment = "Mostly Negative";
 
         md += `#### ${branch} (${BRANCH_NAMES[branch]})\n`;
         md += `- **Sentiment**: ${sentiment} (Pos: ${s.positiveCount}, Neg: ${s.negativeCount})\n`;
-        md += `- **Keywords**: ${Object.entries(s.keywords).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>`${x[0]}`).join(', ')}\n`;
+        md += `- **Keywords**: ${Object.entries(s.keywords).sort((a, b) => b[1] - a[1]).slice(0, 5).map(x => `${x[0]}`).join(', ')}\n`;
         md += `\n`;
     });
 
@@ -170,43 +170,67 @@ async function generateReport() {
     md += `Analysis based on the Heavenly Stem of the day.\n\n`;
     md += `| Stem | Days Logged | Positivity | Top Keywords |\n`;
     md += `|---|---|---|---|\n`;
-    
+
     STEMS.forEach(stem => {
         const s = stemStats[stem];
         if (s.total === 0) return;
         const totalKeywords = s.positiveCount + s.negativeCount;
         const ratio = totalKeywords > 0 ? (s.positiveCount / totalKeywords * 100).toFixed(0) + '%' : 'N/A';
-        const topKw = Object.entries(s.keywords).sort((a,b)=>b[1]-a[1]).slice(0,3).map(p=>p[0]).join(', ');
+        const topKw = Object.entries(s.keywords).sort((a, b) => b[1] - a[1]).slice(0, 3).map(p => p[0]).join(', ');
         md += `| **${stem}** | ${s.total} | ${ratio} | ${topKw} |\n`;
+    });
+
+    // 3. Notable Day Pillars (流日八字)
+    // 3.5 Load Feedback Data
+    const feedbackPath = '/Users/vannyma/antigravity/01_Personal_OS/Teller/src/data/daily-feedback.json';
+    let feedbackData: any[] = [];
+    if (fs.existsSync(feedbackPath)) {
+        feedbackData = JSON.parse(fs.readFileSync(feedbackPath, 'utf8'));
+    }
+
+    const feedbackByPillar: Record<string, any[]> = {};
+    feedbackData.forEach(entry => {
+        if (!feedbackByPillar[entry.pillar]) {
+            feedbackByPillar[entry.pillar] = [];
+        }
+        feedbackByPillar[entry.pillar].push(entry);
     });
 
     md += `\n## 3. Notable Day Pillars (流日八字)\n`;
     md += `Day pillars with significant activity or strong sentiment (min 2 entries).\n\n`;
-    
+
+    // Merge pillar stats with specific feedback
     const sortedPillars = Object.entries(pillarStats)
         .filter(([_, s]) => s.total >= 1)
         .sort((a, b) => {
-             // Sort by total activity (keywords found) per day average? Or just total keywords?
-             // Let's sort by "Intensity" = (Pos + Neg) / Total Days
-             const intA = (a[1].positiveCount + a[1].negativeCount) / a[1].total;
-             const intB = (b[1].positiveCount + b[1].negativeCount) / b[1].total;
-             return intB - intA;
+            const intA = (a[1].positiveCount + a[1].negativeCount) / a[1].total;
+            const intB = (b[1].positiveCount + b[1].negativeCount) / b[1].total;
+            return intB - intA;
         })
         .slice(0, 10);
 
     sortedPillars.forEach(([pillar, s]) => {
-        const totalKw = s.positiveCount + s.negativeCount;
-        const sentiment = s.positiveCount > s.negativeCount ? "Positive" : (s.negativeCount > s.positiveCount ? "Negative" : "Mixed");
         md += `### ${pillar}\n`;
+
+        // Add specific feedback if exists
+        if (feedbackByPillar[pillar] && feedbackByPillar[pillar].length > 0) {
+            md += `**⭐ User Feedback History**:\n`;
+            feedbackByPillar[pillar].forEach(f => {
+                md += `- (${f.date}) [Rating: ${f.rating}/5] ${f.comment}\n`;
+            });
+            md += `\n`;
+        }
+
+        const sentiment = s.positiveCount > s.negativeCount ? "Positive" : (s.negativeCount > s.positiveCount ? "Negative" : "Mixed");
         md += `- **Entries**: ${s.total}\n`;
         md += `- **Vibe**: ${sentiment} (Pos: ${s.positiveCount}, Neg: ${s.negativeCount})\n`;
-        md += `- **Key themes**: ${Object.entries(s.keywords).sort((a,b)=>b[1]-a[1]).slice(0, 5).map(x=>x[0]).join(', ')}\n\n`;
+        md += `- **Key themes**: ${Object.entries(s.keywords).sort((a, b) => b[1] - a[1]).slice(0, 5).map(x => x[0]).join(', ')}\n\n`;
     });
 
     // Write to file
     const outputDir = path.dirname(outputPath);
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-    
+
     fs.writeFileSync(outputPath, md);
     console.log(`Report generated at: ${outputPath}`);
 }

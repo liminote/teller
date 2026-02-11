@@ -3,13 +3,14 @@
 import { generateDailyBasicData } from '@/lib/calendar-utils';
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, PenLine, ChevronUp, TrendingUp } from 'lucide-react';
-import DailyFeedbackForm, { FeedbackData } from '@/components/DailyFeedbackForm';
+import DailyFeedbackForm from '@/components/DailyFeedbackForm';
+import { DailyBasicData, FeedbackData, StatusMappingRecord, HistoryData } from '@/lib/types';
 
 export default function Home() {
-  const [dataList, setDataList] = useState<any[]>([]);
-  const [statusMapping, setStatusMapping] = useState<Record<string, any>>({});
-  const [dailyRecords, setDailyRecords] = useState<Record<string, any>>({});
-  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [dataList, setDataList] = useState<DailyBasicData[]>([]);
+  const [statusMapping, setStatusMapping] = useState<Record<string, StatusMappingRecord>>({});
+  const [dailyRecords, setDailyRecords] = useState<Record<string, FeedbackData>>({});
+  const [historyData, setHistoryData] = useState<HistoryData[]>([]);
   const [activeFeedbackDate, setActiveFeedbackDate] = useState<string | null>(null);
   const [feedbackToast, setFeedbackToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -17,44 +18,48 @@ export default function Home() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const mappingRes = await fetch('/api/status-mapping');
-        const mappingData = await mappingRes.json();
-        if (!mappingRes.ok) throw new Error(mappingData.details || mappingData.error || '載入對照表失敗');
+        const [mappingRes, recordsRes, dailyRes] = await Promise.all([
+          fetch('/api/status-mapping'),
+          fetch('/api/records'),
+          fetch('/api/daily-data')
+        ]);
 
-        const mapping: Record<string, any> = {};
+        const [mappingData, recordsData, dailyData] = await Promise.all([
+          mappingRes.json(),
+          recordsRes.json(),
+          dailyRes.json()
+        ]);
+
+        if (!mappingRes.ok) throw new Error(mappingData.details || mappingData.error || '載入對照表失敗');
+        if (!recordsRes.ok) throw new Error(recordsData.details || recordsData.error || '載入歷史記錄失敗');
+        if (!dailyRes.ok) throw new Error(dailyData.details || dailyData.error || '載入每日資料失敗');
+
+        const mapping: Record<string, StatusMappingRecord> = {};
         if (Array.isArray(mappingData)) {
-          mappingData.forEach((item) => (mapping[item.干支] = item));
+          mappingData.forEach((item: StatusMappingRecord) => (mapping[item.干支] = item));
           setStatusMapping(mapping);
         }
 
-        const recordsRes = await fetch('/api/records');
-        const recordsData = await recordsRes.json();
-        if (!recordsRes.ok) throw new Error(recordsData.details || recordsData.error || '載入歷史記錄失敗');
-
-        const records: Record<string, any> = {};
+        const records: Record<string, FeedbackData> = {};
         if (Array.isArray(recordsData)) {
-          recordsData.forEach((item) => (records[item.日期] = item));
+          recordsData.forEach((item: FeedbackData) => (records[item.日期] = item));
           setDailyRecords(records);
         }
 
-        // 獲取所有歷史合併資料以供算法使用
-        const dailyRes = await fetch('/api/daily-data');
-        const dailyData = await dailyRes.json();
-        if (!dailyRes.ok) throw new Error(dailyData.details || dailyData.error || '載入每日資料失敗');
-
-        const recordsMap = new Map();
+        const recordsMap = new Map<string, FeedbackData>();
         const recordsArray = Array.isArray(recordsData) ? recordsData : [];
-        recordsArray.forEach((r: any) => { if (r.日期) recordsMap.set(r.日期, r); });
+        recordsArray.forEach((r: FeedbackData) => { if (r.日期) recordsMap.set(r.日期, r); });
 
         const dailyArray = Array.isArray(dailyData) ? dailyData : dailyData.data || [];
-        const merged = dailyArray.map((d: any) => {
+        const merged = dailyArray.map((d: DailyBasicData) => {
           const r = recordsMap.get(d.日期);
-          return { ...d, ...r, hasRecord: !!r };
+          return { ...d, ...r, hasRecord: !!r } as HistoryData;
         });
         setHistoryData(merged);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('初始化資料失敗:', error);
-        setFeedbackToast({ type: 'error', message: `載入資料失敗：${error.message}` });
+        const msg = error instanceof Error ? error.message : '未知錯誤';
+        setFeedbackToast({ type: 'error', message: `載入資料失敗：${msg}` });
       }
     };
 
@@ -74,7 +79,7 @@ export default function Home() {
         dates.push({ ...data, isPast: i < 0, isToday: i === 0 });
       }
     }
-    setDataList(dates);
+    setDataList(dates as DailyBasicData[]);
   }, []);
 
   useEffect(() => {
@@ -119,9 +124,10 @@ export default function Home() {
 
       setFeedbackToast({ type: 'success', message: '記錄已儲存！' });
       setActiveFeedbackDate(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('儲存紀錄失敗:', error);
-      setFeedbackToast({ type: 'error', message: `儲存失敗：${error.message}` });
+      const msg = error instanceof Error ? error.message : '未知錯誤';
+      setFeedbackToast({ type: 'error', message: `儲存失敗：${msg}` });
     }
   };
 

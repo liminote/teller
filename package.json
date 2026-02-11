@@ -16,6 +16,7 @@
     "framer-motion": "^12.27.5",
     "googleapis": "^170.1.0",
     "lucide-react": "^0.562.0",
+    "lunar-javascript": "^1.7.7",
     "next": "16.1.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",

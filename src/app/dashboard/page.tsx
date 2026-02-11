@@ -10,6 +10,7 @@ import { getGanzhiColor } from '@/lib/ganzhi-colors';
 
 import { generateDailyBasicData } from '@/lib/calendar-utils';
 import calendarData2025 from '@/data/calendar-2025.json';
+import { getBranchIndex } from '@/lib/purple-palace-data';
 
 export default function Dashboard() {
     const [data, setData] = useState<any[]>([]);
@@ -225,9 +226,29 @@ export default function Dashboard() {
                         if (selfPunishmentSet.has(dayBranch) && (dayBranch === yearBranch || dayBranch === monthBranch)) {
                             punishment = '⚠️ 自刑｜內耗與糾結';
                         }
-                        // 2. 無恩之刑: 寅、巳、申 (|月+日| 包含兩者且不相等)
+
+                        // 2. 六沖 (Clash): 子午沖 (重點), 巳亥沖, etc.
+                        // 針對 2026 馬年 (午)，重點提示 "子" (鼠)
+                        if (!punishment && dayBranch === '子' && yearBranch === '午') {
+                            punishment = '⚡ 六沖｜變動急躁';
+                        } else if (!punishment && getBranchIndex(dayBranch) === (getBranchIndex(monthBranch) + 6) % 12) {
+                            // 月破 (Day clashes with Month)
+                            punishment = '⚡ 月破｜突發狀況';
+                        }
+
+                        // 3. 六害 (Harm): 丑午害 (重點)
+                        // 針對 2026 馬年 (午)，重點提示 "丑" (牛)
+                        if (!punishment && dayBranch === '丑' && yearBranch === '午') {
+                            punishment = '❄️ 六害｜誤會心累';
+                        }
+
+                        // 4. 無恩之刑: 寅、巳、申
+                        // 修正：同時檢查 (年 vs 日) 以及 (月 vs 日)
                         const ungratefulSet = new Set(['寅', '巳', '申']);
-                        if (!punishment && ungratefulSet.has(monthBranch) && ungratefulSet.has(dayBranch) && monthBranch !== dayBranch) {
+                        const isUngratefulWithYear = ungratefulSet.has(yearBranch) && ungratefulSet.has(dayBranch) && yearBranch !== dayBranch;
+                        const isUngratefulWithMonth = ungratefulSet.has(monthBranch) && ungratefulSet.has(dayBranch) && monthBranch !== dayBranch;
+
+                        if (!punishment && (isUngratefulWithYear || isUngratefulWithMonth)) {
                             punishment = '⚠️ 無恩之刑｜吃力不討好';
                         }
 

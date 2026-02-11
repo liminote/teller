@@ -13,17 +13,7 @@ interface DailyFeedbackFormProps {
     initialData?: Partial<FeedbackData>;
 }
 
-export interface FeedbackData {
-    日期: string;
-    今日分數: '好' | '普通' | '不好';
-    紫微_工作: number;
-    紫微_健康: number;
-    紫微_財運: number;
-    紫微_能量: number;
-    八字_體感: string;
-    紫微_四化簡述: string;
-    情緒: string[];
-}
+import { FeedbackData } from '@/lib/types';
 
 const SI_HUA_MAP: Record<string, string> = {
     '甲': '廉破武陽', '乙': '機梁紫陰', '丙': '同機昌廉', '丁': '陰同機巨',
