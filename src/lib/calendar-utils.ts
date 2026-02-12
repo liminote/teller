@@ -19,19 +19,10 @@ export function getDailyCalendar(date: string): DailyCalendarData | null {
 
         // 檢查當天是否有節氣
         const jieQi = lunar.getJieQi();
-        const zhongQi = lunar.getZhongQi();
-        const solarTermName = jieQi || zhongQi || undefined;
+        const solarTermName = jieQi || undefined;
 
+        // 節氣時間暫時不顯示（避免 API 錯誤）
         let solarTermTime = undefined;
-        if (solarTermName) {
-            // 獲取節氣精確時間
-            const solarTerms = solar.getYear().getSolarTerms();
-            const term = solarTerms.find((t: any) => t.getName() === solarTermName);
-            if (term) {
-                const time = term.getJulianDay().getSolar().toYmdHms().split(' ')[1];
-                solarTermTime = time.substring(0, 5); // HH:mm
-            }
-        }
 
         // 重要修正：使用按「立春」切換的年柱，以及按「節氣」切換的月柱
         return {
