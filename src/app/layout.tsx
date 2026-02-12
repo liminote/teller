@@ -23,12 +23,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Teller | 個人命理決策系統",
-  description: "結合紫微斗數與八字曆法，提供每日能量指引。精確計算流日命宮與四化，助您掌握先機。",
+  title: "Liminote Daily - 每日隙音 | 聆聽時間的隙縫",
+  description: "結合紫微斗數與八字曆法，提供每日能量指引。在過去與未來之間，做出更好的選擇。",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Teller",
+    title: "每日隙音",
   },
 };
 

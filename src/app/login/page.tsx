@@ -136,10 +136,15 @@ export default function LoginPage() {
                         <Lock className="w-8 h-8 text-[#8294A5]" />
                         <div className="absolute inset-0 bg-[#8294A5]/5 rounded-[30px] scale-0 group-hover:scale-100 transition-transform duration-500" />
                     </motion.div>
-                    <h1 className="text-3xl font-black text-[#5C5C5C] mb-2 tracking-tight">TELLER</h1>
-                    <p className="text-[#8E8E8E] text-sm font-medium tracking-wide flex items-center justify-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        專屬命理觀測站・請驗證訪問權限
+                    <h1 className="text-3xl font-black text-[#5C5C5C] mb-2 tracking-tight">Liminote Daily</h1>
+                    <p className="text-[#8E8E8E] text-lg font-bold tracking-wide chinese-font mb-1">
+                        每日隙音
+                    </p>
+                    <p className="text-[#B0B0B0] text-xs font-medium tracking-wide">
+                        Listen to the space between
+                    </p>
+                    <p className="text-[#B0B0B0] text-xs font-medium tracking-wide chinese-font">
+                        聆聽時間的隙縫
                     </p>
                 </div>
 
@@ -162,7 +167,7 @@ export default function LoginPage() {
                     transition={{ delay: 0.8 }}
                     className="text-center mt-12 text-[#B0B0B0] text-[10px] font-bold uppercase tracking-[0.3em]"
                 >
-                    System Protected by Teller Security
+                    Powered by Liminote
                 </motion.p>
             </motion.div>
         </div>

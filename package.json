@@ -1,7 +1,8 @@
 {
-  "name": "teller",
+  "name": "liminote-daily",
   "version": "0.1.0",
   "private": true,
+  "description": "Liminote Daily (每日隙音) - Listen to the space between",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
