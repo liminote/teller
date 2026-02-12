@@ -4,7 +4,7 @@
 
 **實作日期**：2025-02-12 開始
 **負責人**：vannyma
-**協作 AI**：Claude Code (Sonnet 4.5)
+**協作 AI**：Claude Code (Opus 4.6)
 
 ---
 
@@ -60,7 +60,7 @@ Next.js App (Vercel)
 
 ```
 Phase 1：環境準備與 Git 分支設定（1 天）
-  ├─ 建立 develop 分支
+  ├─ 建立 dev 分支
   ├─ 設定 Vercel 雙環境部署
   └─ 建立 Firebase 專案
 
@@ -109,7 +109,7 @@ Phase 8：測試與部署（2 天）
 ## 📝 Phase 1：環境準備與 Git 分支設定
 
 ### 目標
-- 建立 develop 分支（測試站）
+- 建立 dev 分支（測試站）
 - 設定 Vercel 雙環境部署
 - 建立 Firebase 專案
 
@@ -126,16 +126,16 @@ git branch
 # 如果還沒初始化 main 分支
 git branch -M main
 
-# 建立並切換到 develop 分支
-git checkout -b develop
+# 建立並切換到 dev 分支
+git checkout -b dev
 
 # 推送到 GitHub
-git push -u origin develop
+git push -u origin dev
 ```
 
 **檢查點**：
-- [ ] `git branch` 顯示 `* develop`
-- [ ] GitHub 上看到兩個分支：main, develop
+- [ ] `git branch` 顯示 `* dev`
+- [ ] GitHub 上看到兩個分支：main, dev
 
 ---
 
@@ -156,7 +156,7 @@ git push -u origin develop
 |---------|---|------|
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` 生成 | All |
 | `NEXTAUTH_URL` | `https://你的網域.com` | Production |
-| `NEXTAUTH_URL` | `https://teller-dev.vercel.app` | Preview (develop) |
+| `NEXTAUTH_URL` | `https://teller-dev.vercel.app` | Preview (dev) |
 | `GOOGLE_CLIENT_ID` | (稍後設定) | All |
 | `GOOGLE_CLIENT_SECRET` | (稍後設定) | All |
 | `FIREBASE_PROJECT_ID` | (稍後設定) | All |
@@ -171,13 +171,13 @@ git push -u origin develop
 Production Branch: main
   → 部署到：teller.你的網域.com
 
-Preview Branches: develop
+Preview Branches: dev
   → 部署到：teller-dev-xxx.vercel.app
 ```
 
 **檢查點**：
 - [ ] Vercel 顯示兩個環境：Production, Preview
-- [ ] 推送 develop 分支會自動部署到 Preview 環境
+- [ ] 推送 dev 分支會自動部署到 Preview 環境
 
 ---
 
@@ -2160,13 +2160,13 @@ export async function GET(
 #### 8.6 部署到正式站
 
 ```bash
-# 確認 develop 分支測試完成
-git checkout develop
+# 確認 dev 分支測試完成
+git checkout dev
 git status
 
 # 合併到 main
 git checkout main
-git merge develop
+git merge dev
 
 # 推送到 GitHub
 git push origin main
@@ -2179,7 +2179,7 @@ git push origin main
 ## ✅ 完成檢查表
 
 ### Phase 1: 環境準備
-- [ ] Git develop 分支已建立
+- [ ] Git dev 分支已建立
 - [ ] Vercel 雙環境已設定
 - [ ] Firebase 專案已建立
 - [ ] Firestore 安全規則已設定
@@ -2289,7 +2289,7 @@ git push origin main
 git branch
 
 # 切換分支
-git checkout develop
+git checkout dev
 
 # 建立新分支
 git checkout -b feature/new-feature
@@ -2301,11 +2301,11 @@ git diff
 # 提交修改
 git add .
 git commit -m "描述修改內容"
-git push origin develop
+git push origin dev
 
 # 合併分支
 git checkout main
-git merge develop
+git merge dev
 git push origin main
 
 # 如果推送失敗（遠端有更新）
@@ -2322,8 +2322,8 @@ git log --oneline --graph --all
 
 - [NextAuth.js 文件](https://next-auth.js.org/)
 - [Firebase Firestore 文件](https://firebase.google.com/docs/firestore)
-- [Google Sheets API](https://developers.google.com/sheets/api)
-- [Google Drive API](https://developers.google.com/drive/api)
+- [Google Sheets API](https://devers.google.com/sheets/api)
+- [Google Drive API](https://devers.google.com/drive/api)
 - [Vercel 部署文件](https://vercel.com/docs)
 
 ---
